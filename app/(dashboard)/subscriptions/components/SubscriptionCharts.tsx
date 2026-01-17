@@ -84,7 +84,7 @@ export const SubscriptionCharts = () => {
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value: number) => `€${value.toLocaleString()}`}
+                  formatter={(value: any) => `€${Number(value).toLocaleString()}`}
                   contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   itemStyle={{ fontSize: '12px' }}
                 />
