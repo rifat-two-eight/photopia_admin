@@ -100,9 +100,9 @@ const PaymentsPage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-white -my-3 p-5 lg:p-10 rounded-xl shadow-md">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Payments & Commissions</h1>
+        <h1 className="text-2xl font-semibold text-gray-900 -mt-4">Payments & Commissions</h1>
         <p className="text-sm text-gray-500 mt-1">
           Track transactions, commissions, and financial metrics
         </p>
