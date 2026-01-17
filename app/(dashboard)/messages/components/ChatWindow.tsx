@@ -39,9 +39,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation }) => {
                 <Phone className="w-4 h-4" />
             </Button>
             <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600">
-                <Video className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600">
                 <Info className="w-4 h-4" />
             </Button>
             <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600">
