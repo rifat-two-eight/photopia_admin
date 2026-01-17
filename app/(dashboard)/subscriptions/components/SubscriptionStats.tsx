@@ -2,13 +2,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, DollarSign, Crown, Store } from 'lucide-react';
 
-interface SubscriptionStat {
-  label: string;
-  value: string;
-  change?: string;
-  subtext?: string;
-  icon: 'users' | 'dollar' | 'crown' | 'store';
-}
+import { SubscriptionStat } from '../types';
 
 interface SubscriptionStatsProps {
   stats: SubscriptionStat[];

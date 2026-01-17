@@ -5,6 +5,7 @@ export interface SubscriptionStat {
     value: string;
     change?: string;
     count?: string;
+    subtext?: string;
     icon?: any; // Lucide icon
     color?: string;
 }
