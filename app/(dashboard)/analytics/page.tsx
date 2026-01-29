@@ -8,6 +8,7 @@ import { ConversionChart } from './components/ConversionChart';
 import { TopProviders } from './components/TopProviders';
 import { GrowthServices } from './components/GrowthServices';
 import { AnalyticsStat, ServiceData, ProviderPerformance, GrowthService, MonthData } from './types';
+import TopPerformingProviders from "./components/TopPerformingProviders";
 
 const AnalyticsPage = () => {
   const stats: AnalyticsStat[] = [
@@ -79,6 +80,8 @@ const AnalyticsPage = () => {
         <TopProviders providers={topProviders} />
         <GrowthServices services={growthServices} />
       </div>
+
+      <TopPerformingProviders />
     </div>
   );
 };

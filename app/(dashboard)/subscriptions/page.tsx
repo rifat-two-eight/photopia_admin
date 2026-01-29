@@ -7,6 +7,7 @@ import { SubscriptionFilters } from './components/SubscriptionFilters';
 import { SubscribersTable } from './components/SubscribersTable';
 import { EditPlanForm } from './components/EditPlanForm';
 import { SubscriptionStat, SubscriptionPlan, Subscriber } from './types';
+import LocationSelector from "@/components/dashboard/LocationSelector";
 
 const SubscriptionsPage = () => {
   const [isEditingPlan, setIsEditingPlan] = useState(false);
@@ -59,11 +60,16 @@ const SubscriptionsPage = () => {
 
   return (
     <div className="space-y-6 bg-white -my-3 p-5 lg:p-10 rounded-xl shadow-md">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900 -mt-4">Subscription Management</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Manage Premium and Studio subscriptions
-        </p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 -mt-4">Subscription Management</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage Premium and Studio subscriptions
+          </p>
+        </div>
+        <div className="mb-1">
+          <LocationSelector />
+        </div>
       </div>
 
       <SubscriptionStats stats={stats} />

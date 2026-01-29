@@ -223,9 +223,14 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ report, onBack }) =>
           <Card className="border-gray-200 shadow-sm">
             <CardContent className="p-6">
               <h3 className="text-base font-semibold text-gray-900 mb-4">Quick Actions</h3>
-              <Button className="w-full bg-[#1C1C1E] hover:bg-gray-800 text-white">
+              <div className="flex gap-4 flex-col">
+                <Button className="w-full bg-[#1C1C1E] hover:bg-gray-800 text-white">
                 Contact Reporter
               </Button>
+              <Button className="w-full bg-white border border-gray-600 hover:bg-gray-200 text-black">
+                Contact Provider
+              </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
