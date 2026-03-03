@@ -41,7 +41,25 @@ export default function DashboardLayout({
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  const [userName, setUserName] = useState("Admin");
+
+  // Authentication check
+  useState(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      const name = localStorage.getItem("userName");
+      if (!token) {
+        router.push("/login");
+      }
+      if (name) {
+        setUserName(name);
+      }
+    }
+  });
+
   const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userName");
     router.push("/login");
   };
 
@@ -57,9 +75,8 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside
-        className={`fixed m-0 lg:m-5 lg:static inset-y-0 left-0 z-50 w-66 shadow-lg rounded-2xl bg-white transform transition-transform duration-300 ease-in-out ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
+        className={`fixed m-0 lg:m-5 lg:static inset-y-0 left-0 z-50 w-66 shadow-lg rounded-2xl bg-white transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } lg:translate-x-0`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
@@ -85,11 +102,10 @@ export default function DashboardLayout({
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
-                      isActive
-                        ? "bg-black text-white"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    }`}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive
+                      ? "bg-black text-white"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                      }`}
                   >
                     <Icon className="w-5 h-5" />
                     {item.label}
@@ -119,7 +135,7 @@ export default function DashboardLayout({
               </Avatar>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  admin@photopia.app
+                  {userName}
                 </p>
                 <p className="text-xs text-gray-500 truncate">Admin</p>
               </div>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import axiosInstance from "@/lib/axios";
 
 export default function OTPVerifyPage() {
   const router = useRouter();
@@ -57,7 +58,7 @@ export default function OTPVerifyPage() {
 
   const handleSubmit = async () => {
     const otpCode = otp.join("");
-    
+
     if (otpCode.length !== 6) {
       toast.error("Please enter all 6 digits");
       return;
@@ -69,7 +70,7 @@ export default function OTPVerifyPage() {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       toast.success("Email verified successfully!");
-      
+
       setTimeout(() => {
         router.push("/reset");
       }, 1000);
@@ -81,16 +82,26 @@ export default function OTPVerifyPage() {
   };
 
   const handleResend = async () => {
+    const email = localStorage.getItem("resetEmail");
+    if (!email) {
+      toast.error("Email not found. Please go back to forgot password page.");
+      return;
+    }
+
     setIsResending(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await axiosInstance.post("/auth/resend-otp", { email });
 
-      toast.success("OTP code has been resent to your email!");
-      setOtp(["", "", "", "", "", ""]);
-      inputRefs.current[0]?.focus();
-    } catch (error) {
-      toast.error("Failed to resend code. Please try again.");
+      if (response.data.success) {
+        toast.success(response.data.message || "OTP code has been resent to your email!");
+        setOtp(["", "", "", "", "", ""]);
+        inputRefs.current[0]?.focus();
+      } else {
+        toast.error(response.data.message || "Failed to resend code.");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to resend code. Please try again.");
     } finally {
       setIsResending(false);
     }

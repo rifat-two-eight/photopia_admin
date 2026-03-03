@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import axiosInstance from "@/lib/axios";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -20,19 +21,21 @@ export default function ForgotPasswordPage() {
       toast.error("Please enter your email");
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await axiosInstance.post("/auth/forget-password", { email });
 
-      toast.success("Password reset link sent to your email!");
-
-      setTimeout(() => {
+      if (response.data.success) {
+        toast.success(response.data.message || "OTP sent successfully!");
+        localStorage.setItem("resetEmail", email);
         router.push("/otp");
-      }, 1000);
-    } catch (error) {
-      toast.error("Failed to send reset link. Please try again.");
+      } else {
+        toast.error(response.data.message || "Failed to send reset link.");
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to send reset link. Please try again.");
     } finally {
       setIsLoading(false);
     }

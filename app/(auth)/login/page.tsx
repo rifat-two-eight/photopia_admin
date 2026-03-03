@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import axiosInstance from "@/lib/axios";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,18 +20,64 @@ export default function LoginPage() {
     remember: false,
   });
 
+  // Load saved credentials on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("rememberedEmail");
+    const savedPassword = localStorage.getItem("rememberedPassword");
+    const savedRemember = localStorage.getItem("rememberMe") === "true";
+
+    if (savedRemember && savedEmail && savedPassword) {
+      setFormData({
+        email: savedEmail,
+        password: savedPassword,
+        remember: true,
+      });
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await axiosInstance.post("/auth/admin-login", {
+        email: formData.email,
+        password: formData.password,
+        rememberMe: formData.remember,
+      });
 
-      toast.success("You have been logged in successfully!");
+      if (response.data.success) {
+        const { accessToken } = response.data.data;
+        const message = response.data.message || "You have been logged in successfully!";
 
-      router.push("/dashboard");
-    } catch (error) {
-      toast.error("Invalid email or password. Please try again.");
+        const userName = message.includes("Welcome back ")
+          ? message.replace("Welcome back ", "")
+          : "Admin";
+
+        localStorage.setItem("token", accessToken);
+        localStorage.setItem("userName", userName);
+
+        // Handle Remember Me persistence
+        if (formData.remember) {
+          localStorage.setItem("rememberedEmail", formData.email);
+          localStorage.setItem("rememberedPassword", formData.password);
+          localStorage.setItem("rememberMe", "true");
+        } else {
+          localStorage.removeItem("rememberedEmail");
+          localStorage.removeItem("rememberedPassword");
+          localStorage.setItem("rememberMe", "false");
+        }
+
+        toast.success(message);
+        router.push("/dashboard");
+      } else {
+        toast.error(response.data.message || "Login failed");
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast.error(
+        error.response?.data?.message || "Invalid email or password. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -113,7 +160,7 @@ export default function LoginPage() {
                   htmlFor="remember"
                   className="text-sm font-normal text-gray-600 cursor-pointer"
                 >
-                  Remember for 30 days
+                  Remember me
                 </Label>
               </div>
 

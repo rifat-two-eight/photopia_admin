@@ -3,7 +3,7 @@ export interface NotificationItem {
     title: string;
     description: string;
     time: string;
-    type: 'user' | 'report' | 'payment' | 'subscription' | 'alert' | 'success';
+    type: 'user' | 'report' | 'payment' | 'subscription' | 'alert' | 'success' | 'NEW_MESSAGE' | string;
     isUnread: boolean;
 }
 
