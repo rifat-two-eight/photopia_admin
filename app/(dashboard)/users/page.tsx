@@ -134,10 +134,10 @@ const UserManagement = () => {
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchQuery.toLowerCase());
+      user.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = filters.role === 'all' || user.role === filters.role;
     const matchesStatus = filters.status === 'all' || user.status === filters.status;
-    
+
     return matchesSearch && matchesRole && matchesStatus;
   });
 
@@ -155,8 +155,8 @@ const UserManagement = () => {
 
   if (selectedUser) {
     return (
-      <UserDetail 
-        user={selectedUser} 
+      <UserDetail
+        user={selectedUser}
         onBack={() => setSelectedUser(null)}
         onWarn={() => handleWarnUser(selectedUser)}
         onSuspend={() => handleSuspendUser(selectedUser)}
@@ -187,15 +187,15 @@ const UserManagement = () => {
           onFilterChange={setFilters}
         />
 
-        <UserTable 
-          users={filteredUsers} 
+        <UserTable
+          users={filteredUsers}
           onViewUser={setSelectedUser}
           onWarnUser={handleWarnUser}
           onSuspendUser={handleSuspendUser}
           onDeleteUser={handleDeleteUser}
         />
 
-        <UserPagination 
+        <UserPagination
           currentPage={currentPage}
           totalPages={3}
           totalItems={filteredUsers.length}
