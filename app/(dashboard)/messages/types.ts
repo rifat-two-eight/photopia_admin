@@ -1,24 +1,60 @@
-export interface User {
-    id: string;
+export interface Participant {
+    _id: string;
     name: string;
-    avatar: string; // URL or placeholder
-    role: 'Provider' | 'User';
-    status: 'Online' | 'Offline';
+    profile: string;
+    updatedAt: string;
+}
+
+export interface Chat {
+    _id: string;
+    participants: Participant[];
+    status: boolean;
+    updatedAt: string;
+    unreadCount: number;
 }
 
 export interface Message {
-    id: string;
-    senderId: string;
+    _id: string;
+    chatId: string;
+    sender: string;
     text: string;
-    timestamp: string;
-    isMe: boolean; // For easy styling of "My" messages
+    image: string | null;
+    seen: boolean;
+    createdAt: string;
+    updatedAt: string;
 }
 
+export interface ChatResponse {
+    success: boolean;
+    message: string;
+    data: {
+        chats: Chat[];
+        totalUnreadChats: number;
+    };
+}
+
+export interface MessageResponse {
+    success: boolean;
+    message: string;
+    data: Message[];
+}
+
+export interface SendMessageResponse {
+    success: boolean;
+    message: string;
+    data: Message;
+}
+
+// For UI use
 export interface Conversation {
     id: string;
-    user: User;
-    lastMessage: string;
+    user: {
+        id: string;
+        name: string;
+        avatar: string;
+        status: 'Online' | 'Offline';
+    };
     lastMessageTime: string;
-    unreadCount?: number;
+    unreadCount: number;
     messages: Message[];
 }

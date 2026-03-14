@@ -1,157 +1,260 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatsCards } from './components/StatsCards';
 import { UserFilters } from './components/UserFilters';
 import { UserTable } from './components/UserTable';
 import { UserPagination } from './components/UserPagination';
 import { UserDetail } from './components/UserDetail';
-import { User, Stat } from './types';
+import { User, Stat, UserStatsResponse, UsersResponse, UserDetailStatsResponse, UserDetailStats } from './types';
+import axiosInstance from '@/lib/axios';
+import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 
 const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserDetailStats | null>(null);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
   const [filters, setFilters] = useState({
     role: 'all',
     status: 'all'
   });
+  const [userStats, setUserStats] = useState<Stat[]>([
+    { label: 'Total Users', value: '...' },
+    { label: 'Providers', value: '...' },
+    { label: 'Active This Month', value: '...' },
+    { label: 'Suspended', value: '...', highlight: true }
+  ]);
 
-  const stats: Stat[] = [
-    { label: 'Total Users', value: '2,847' },
-    { label: 'Providers', value: '810' },
-    { label: 'Active This Month', value: '2,341' },
-    { label: 'Suspended', value: '12', highlight: true }
-  ];
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
 
-  const users: User[] = [
-    {
-      id: 1,
-      name: 'Lisa Anderson',
-      email: 'lisa.a@example.com',
-      role: 'Premium',
-      roleColor: 'yellow',
-      status: 'Active',
-      statusColor: 'green',
-      joinDate: '2024-11-01',
-      activity: '30 minutes ago',
-      phone: '+33 6 12 34 56 78',
-      location: 'Paris, France',
-      totalRevenue: '€12,450',
-      completedJobs: 47,
-      avgRating: 4.8,
-      responseTime: '2.3 hours',
-      activityHistory: [
-        { type: 'Profile updated', detail: 'Changed profile picture', date: '2024-12-20 14:30' },
-        { type: 'Payment received', detail: '€249.00 for wedding photography', date: '2024-12-18 09:15' },
-        { type: 'New booking', detail: 'Wedding photography service', date: '2024-12-15 16:45' },
-        { type: 'Profile created', detail: 'Account registration', date: '2024-11-01' }
-      ],
-      recentPayments: [
-        { service: 'Wedding Photography', date: '2024-12-18', amount: '€249.00' },
-        { service: 'Portrait Session', date: '2024-12-05', amount: '€120.00' },
-        { service: 'Event Coverage', date: '2024-11-29', amount: '€380.00' }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Sophie Martin',
-      email: 'sophie.m@example.com',
-      role: 'User',
-      roleColor: 'blue',
-      status: 'Active',
-      statusColor: 'green',
-      joinDate: '2024-10-18',
-      activity: '3 hours ago'
-    },
-    {
-      id: 3,
-      name: 'Robert Taylor',
-      email: 'robert.t@example.com',
-      role: 'User',
-      roleColor: 'blue',
-      status: 'Active',
-      statusColor: 'green',
-      joinDate: '2024-09-28',
-      activity: '1 hour ago'
-    },
-    {
-      id: 4,
-      name: 'Emma Wilson',
-      email: 'emma.w@example.com',
-      role: 'User',
-      roleColor: 'blue',
-      status: 'Active',
-      statusColor: 'green',
-      joinDate: '2024-09-10',
-      activity: '5 minutes ago'
-    },
-    {
-      id: 5,
-      name: 'Michael Chen',
-      email: 'michael.c@example.com',
-      role: 'Premium',
-      roleColor: 'yellow',
-      status: 'Active',
-      statusColor: 'green',
-      joinDate: '2024-08-22',
-      activity: '1 day ago'
-    },
-    {
-      id: 6,
-      name: 'James Rodriguez',
-      email: 'james.r@example.com',
-      role: 'Provider',
-      roleColor: 'purple',
-      status: 'Inactive',
-      statusColor: 'gray',
-      joinDate: '2024-07-05',
-      activity: '2 weeks ago'
-    },
-    {
-      id: 7,
-      name: 'Sarah Johnson',
-      email: 'sarah.j@example.com',
-      role: 'Provider',
-      roleColor: 'purple',
-      status: 'Active',
-      statusColor: 'green',
-      joinDate: '2024-06-15',
-      activity: '2 hours ago'
-    },
-    {
-      id: 8,
-      name: 'David Kim',
-      email: 'david.k@example.com',
-      role: 'Provider',
-      roleColor: 'purple',
-      status: 'Suspended',
-      statusColor: 'red',
-      joinDate: '2024-05-20',
-      activity: '1 month ago'
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+
+  useEffect(() => {
+    fetchUserStats();
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [currentPage, debouncedSearch, filters]);
+
+  const fetchUserStats = async () => {
+    try {
+      const response = await axiosInstance.get<UserStatsResponse>('/dashboard/user-stats');
+      if (response.data.success) {
+        const { totalUsers, providers, activeThisMonth, suspended } = response.data.data;
+        setUserStats([
+          { label: 'Total Users', value: totalUsers.toLocaleString() },
+          { label: 'Providers', value: providers.toLocaleString() },
+          { label: 'Active This Month', value: activeThisMonth.toLocaleString() },
+          { label: 'Suspended', value: suspended.toLocaleString(), highlight: true }
+        ]);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to fetch user stats");
     }
-  ];
-
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = filters.role === 'all' || user.role === filters.role;
-    const matchesStatus = filters.status === 'all' || user.status === filters.status;
-
-    return matchesSearch && matchesRole && matchesStatus;
-  });
-
-  const handleWarnUser = (user: User) => {
-    console.log('Warn user:', user.name);
   };
 
-  const handleSuspendUser = (user: User) => {
-    console.log('Suspend user:', user.name);
+  const fetchUsers = async () => {
+    try {
+      setIsLoadingUsers(true);
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '10',
+        searchTerm: debouncedSearch,
+      });
+      if (filters.role !== 'all') params.append('role', filters.role);
+      if (filters.status !== 'all') params.append('status', filters.status);
+
+      const response = await axiosInstance.get<UsersResponse>(`/users?${params.toString()}`);
+      if (response.data.success) {
+        setUsers(response.data.data);
+        setTotalPages(response.data.meta.totalPages);
+        setTotalItems(response.data.meta.total);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to fetch users");
+    } finally {
+      setIsLoadingUsers(false);
+    }
   };
 
-  const handleDeleteUser = (user: User) => {
-    console.log('Delete user:', user.name);
+  const fetchUserDetails = async (user: User | { id: string }) => {
+    try {
+      setIsLoadingDetails(true);
+      const userId = 'id' in user ? user.id : user._id;
+      const response = await axiosInstance.get<UserDetailStatsResponse>(`/dashboard/user-details/${userId}`);
+      if (response.data.success) {
+        setSelectedUser(response.data.data);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to fetch user details");
+    } finally {
+      setIsLoadingDetails(false);
+    }
   };
+
+  const handleWarnUser = async (user: User | UserDetailStats) => {
+    const isStatsType = 'user' in user;
+    const userName = isStatsType ? user.user.name : user.name;
+    const userId = isStatsType ? user.user.id : user._id;
+
+    const { value: message } = await Swal.fire({
+      title: `Warn ${userName}`,
+      input: 'textarea',
+      inputLabel: 'Warning Message',
+      inputPlaceholder: 'Type your warning message here...',
+      inputAttributes: {
+        'aria-label': 'Type your warning message here'
+      },
+      showCancelButton: true,
+      confirmButtonText: 'Send Warning',
+      confirmButtonColor: '#D08700',
+      cancelButtonColor: '#6B7280',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'You need to write something!'
+        }
+      }
+    });
+
+    if (message) {
+      try {
+        const response = await axiosInstance.post('/dashboard/warn-user', {
+          userId,
+          message: message
+        });
+        if (response.data.success) {
+          Swal.fire({
+            title: 'Success!',
+            text: response.data.message || "Warning sent successfully",
+            icon: 'success',
+            confirmButtonColor: '#1E1E1E'
+          });
+          // If we are in detail view, refresh it
+          if (selectedUser) fetchUserDetails({ id: userId });
+        }
+      } catch (error: any) {
+        Swal.fire({
+          title: 'Error!',
+          text: error.response?.data?.message || "Failed to send warning",
+          icon: 'error',
+          confirmButtonColor: '#1E1E1E'
+        });
+      }
+    }
+  };
+
+  const handleSuspendUser = async (user: User | UserDetailStats) => {
+    const isStatsType = 'user' in user;
+    const userName = isStatsType ? user.user.name : user.name;
+    const userId = isStatsType ? user.user.id : user._id;
+    const status = isStatsType ? user.user.status : user.status;
+
+    const isActive = status === 'active';
+    const actionText = isActive ? 'suspend' : 'activate';
+    const confirmButtonColor = isActive ? '#F54900' : '#10B981';
+
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: `You are about to ${actionText} ${userName}'s account.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: confirmButtonColor,
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: `Yes, ${actionText} it!`
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await axiosInstance.patch(`/dashboard/user-status/${userId}`);
+        if (response.data.success) {
+          Swal.fire({
+            title: 'Updated!',
+            text: response.data.message || `User ${actionText}ed successfully`,
+            icon: 'success',
+            confirmButtonColor: '#1E1E1E'
+          });
+          fetchUsers();
+          fetchUserStats();
+          if (selectedUser) {
+            fetchUserDetails({ id: userId });
+          }
+        }
+      } catch (error: any) {
+        Swal.fire({
+          title: 'Error!',
+          text: error.response?.data?.message || `Failed to ${actionText} user`,
+          icon: 'error',
+          confirmButtonColor: '#1E1E1E'
+        });
+      }
+    }
+  };
+
+  const handleDeleteUser = async (user: User | UserDetailStats) => {
+    const isStatsType = 'user' in user;
+    const userName = isStatsType ? user.user.name : user.name;
+    const userId = isStatsType ? user.user.id : user._id;
+
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: `You are about to delete ${userName}. This action cannot be undone!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#E7000B',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await axiosInstance.delete(`/user/${userId}`);
+        if (response.data.success) {
+          Swal.fire({
+            title: 'Deleted!',
+            text: response.data.message || "User deleted successfully",
+            icon: 'success',
+            confirmButtonColor: '#1E1E1E'
+          });
+          fetchUsers();
+          fetchUserStats();
+          if (selectedUser) setSelectedUser(null);
+        }
+      } catch (error: any) {
+        Swal.fire({
+          title: 'Error!',
+          text: error.response?.data?.message || "Failed to delete user",
+          icon: 'error',
+          confirmButtonColor: '#1E1E1E'
+        });
+      }
+    }
+  };
+
+  if (isLoadingDetails) {
+    return (
+      <div className="h-[400px] flex items-center justify-center bg-white rounded-xl shadow-md">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-500 text-sm">Loading user details...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (selectedUser) {
     return (
@@ -175,30 +278,40 @@ const UserManagement = () => {
         </p>
       </div>
 
-      <StatsCards stats={stats} />
+      <StatsCards stats={userStats} />
 
       <div className="space-y-4">
         <UserFilters
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={(val) => {
+            setSearchQuery(val);
+            setCurrentPage(1);
+          }}
           showFilters={showFilters}
           onToggleFilters={() => setShowFilters(!showFilters)}
           filters={filters}
-          onFilterChange={setFilters}
+          onFilterChange={(newFilters) => {
+            setFilters(newFilters);
+            setCurrentPage(1);
+          }}
         />
 
-        <UserTable
-          users={filteredUsers}
-          onViewUser={setSelectedUser}
-          onWarnUser={handleWarnUser}
-          onSuspendUser={handleSuspendUser}
-          onDeleteUser={handleDeleteUser}
-        />
+        {isLoadingUsers ? (
+          <div className="p-8 text-center text-gray-500">Loading users...</div>
+        ) : (
+          <UserTable
+            users={users}
+            onViewUser={fetchUserDetails}
+            onWarnUser={handleWarnUser}
+            onSuspendUser={handleSuspendUser}
+            onDeleteUser={handleDeleteUser}
+          />
+        )}
 
         <UserPagination
           currentPage={currentPage}
-          totalPages={3}
-          totalItems={filteredUsers.length}
+          totalPages={totalPages}
+          totalItems={totalItems}
           itemsPerPage={10}
           onPageChange={setCurrentPage}
         />

@@ -1,79 +1,100 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ConversationList } from './components/ConversationList';
 import { ChatWindow } from './components/ChatWindow';
-import { Conversation } from './types';
+import { Chat, Message, ChatResponse, MessageResponse } from './types';
+import axiosInstance from '@/lib/axios';
+import { toast } from 'sonner';
 
 const MessagesPage = () => {
-    // Dummy Data mirroring the screenshot
-  const [activeId, setActiveId] = useState<string>('c1');
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoadingChats, setIsLoadingChats] = useState(true);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
 
-  const conversations: Conversation[] = [
-    {
-        id: 'c1',
-        user: { id: 'u1', name: 'Sarah Johnson', role: 'Provider', status: 'Online', avatar: '' },
-        lastMessage: 'Thank you for your help with the verification!',
-        lastMessageTime: '2 min ago',
-        unreadCount: 2,
-        messages: [
-            { id: 'm1', senderId: 'u1', text: 'Hello, I need help with my account verification', timestamp: '10:30 AM', isMe: false },
-            { id: 'm2', senderId: 'me', text: "Hello Sarah! I'd be happy to help you with that. What seems to be the issue?", timestamp: '10:32 AM', isMe: true },
-            { id: 'm3', senderId: 'u1', text: 'My business license document was rejected, but I\'m not sure why', timestamp: '10:33 AM', isMe: false },
-            { id: 'm4', senderId: 'me', text: 'Let me check your account. The document appears to be blurry. Could you please upload a clearer version?', timestamp: '10:35 AM', isMe: true },
-            { id: 'm5', senderId: 'u1', text: 'Oh, I see. I\'ll upload a better quality photo right away.', timestamp: '10:36 AM', isMe: false },
-            { id: 'm6', senderId: 'u1', text: 'Just uploaded the new document. Can you check it now?', timestamp: '10:45 AM', isMe: false },
-            { id: 'm7', senderId: 'me', text: 'Perfect! The document is now clear and readable. I\'ve approved it. Your account is now fully verified.', timestamp: '10:48 AM', isMe: true },
-            { id: 'm8', senderId: 'u1', text: 'Thank you for your help with the verification!', timestamp: '10:50 AM', isMe: false },
-        ]
-    },
-    {
-        id: 'c2',
-        user: { id: 'u2', name: 'Michael Chen', role: 'Provider', status: 'Online', avatar: '' },
-        lastMessage: 'Can you help me understand the commission',
-        lastMessageTime: '15 min ago',
-        messages: []
-    },
-    {
-        id: 'c3',
-        user: { id: 'u3', name: 'Emma Wilson', role: 'User', status: 'Offline', avatar: '' },
-        lastMessage: 'I reported a user yesterday. Any updates?',
-        lastMessageTime: '1 hour ago',
-        unreadCount: 1,
-        messages: []
-    },
-    {
-        id: 'c4',
-        user: { id: 'u4', name: 'James Rodriguez', role: 'Provider', status: 'Offline', avatar: '' },
-        lastMessage: 'Sounds good, thanks!',
-        lastMessageTime: '3 hours ago',
-        messages: []
-    },
-    {
-        id: 'c5',
-        user: { id: 'u5', name: 'Lisa Anderson', role: 'User', status: 'Online', avatar: '' },
-        lastMessage: 'Could you help me with my subscription?',
-        lastMessageTime: '5 hours ago',
-        messages: []
+  useEffect(() => {
+    fetchChats();
+  }, []);
+
+  useEffect(() => {
+    if (activeId) {
+      fetchMessages(activeId);
     }
-  ];
+  }, [activeId]);
 
-  const activeConversation = conversations.find(c => c.id === activeId) || conversations[0];
+  const fetchChats = async () => {
+    try {
+      setIsLoadingChats(true);
+      const response = await axiosInstance.get<ChatResponse>('/chat');
+      if (response.data.success) {
+        setChats(response.data.data.chats);
+        if (response.data.data.chats.length > 0 && !activeId) {
+          setActiveId(response.data.data.chats[0]._id);
+        }
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to fetch chats");
+    } finally {
+      setIsLoadingChats(false);
+    }
+  };
+
+  const fetchMessages = async (chatId: string) => {
+    try {
+      setIsLoadingMessages(true);
+      const response = await axiosInstance.get<MessageResponse>(`/message/${chatId}`);
+      if (response.data.success) {
+        setMessages(response.data.data);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to fetch messages");
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
+
+  const handleMessageSent = (newMessage: Message) => {
+    setMessages((prev) => [...prev, newMessage]);
+    // Optionally update the chat's updatedAt and unreadCount in the chats list
+    setChats((prev) =>
+      prev.map((chat) =>
+        chat._id === newMessage.chatId
+          ? { ...chat, updatedAt: newMessage.createdAt }
+          : chat
+      )
+    );
+  };
+
+  const activeChat = chats.find(c => c._id === activeId);
 
   return (
     <div className="flex h-[calc(100vh-140px)] bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        {/* Sidebar - fixed width */}
-        <div className="w-80 md:w-96 flex-shrink-0">
-            <ConversationList 
-                conversations={conversations} 
-                activeId={activeId}
-                onSelect={setActiveId}
-            />
-        </div>
+      {/* Sidebar - fixed width */}
+      <div className="w-80 md:w-96 flex-shrink-0">
+        <ConversationList
+          chats={chats}
+          activeId={activeId || ''}
+          onSelect={setActiveId}
+          isLoading={isLoadingChats}
+        />
+      </div>
 
-        {/* Main Chat Area */}
-        <div className="flex-1 min-w-0">
-             <ChatWindow conversation={activeConversation} />
-        </div>
+      {/* Main Chat Area */}
+      <div className="flex-1 min-w-0">
+        {activeChat ? (
+          <ChatWindow 
+            chat={activeChat} 
+            messages={messages} 
+            isLoading={isLoadingMessages} 
+            onMessageSent={handleMessageSent}
+          />
+        ) : (
+          <div className="h-full flex items-center justify-center text-gray-500">
+            Select a conversation to start messaging
+          </div>
+        )}
+      </div>
     </div>
   );
 };
