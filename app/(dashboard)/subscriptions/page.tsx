@@ -1,39 +1,75 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axiosInstance from '@/lib/axios';
 import { SubscriptionStats } from './components/SubscriptionStats';
 import { SubscriptionCharts } from './components/SubscriptionCharts';
 import { PlanCard } from './components/PlanCard';
 import { SubscriptionFilters } from './components/SubscriptionFilters';
 import { SubscribersTable } from './components/SubscribersTable';
 import { EditPlanForm } from './components/EditPlanForm';
-import { SubscriptionStat, SubscriptionPlan, Subscriber } from './types';
+import { SubscriptionStat, SubscriptionPlan, Subscriber, SubscriptionStatsApiResponse } from './types';
 import LocationSelector from "@/components/dashboard/LocationSelector";
 
 const SubscriptionsPage = () => {
   const [isEditingPlan, setIsEditingPlan] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statsData, setStatsData] = useState<SubscriptionStatsApiResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setIsLoading(true);
+        const response = await axiosInstance.get('/dashboard/subscription-stats');
+        if (response.data.success) {
+          setStatsData(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching subscription stats:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const stats: SubscriptionStat[] = [
-    { label: 'Total Provider', value: '1471', change: '+15.2%', subtext: 'this month', icon: 'users', count: '1471' },
-    { label: 'Monthly Revenue', value: '€39,057', change: '+8.7%', subtext: 'this month', icon: 'dollar' },
-    { label: 'Premium Subscribers', value: '1,284', subtext: '€16/month each', icon: 'crown', change: '' }, // Special styling handled in component
-    { label: 'No Subscribers', value: '187', icon: 'store' }
+    { 
+      label: 'Total Provider', 
+      value: statsData?.totalProvider.count.toString() || '0', 
+      change: statsData?.totalProvider.percentageChange.toString(), 
+      subtext: 'this month', 
+      icon: 'users' 
+    },
+    { 
+      label: 'Monthly Revenue', 
+      value: `€${(statsData?.monthlyRevenue.amount || 0).toLocaleString()}`, 
+      change: statsData?.monthlyRevenue.percentageChange.toString(), 
+      subtext: 'this month', 
+      icon: 'dollar' 
+    },
+    { 
+      label: 'Premium Subscribers', 
+      value: statsData?.premiumSubscribers.count.toString() || '0', 
+      subtext: `€${statsData?.premiumSubscribers.pricePerMonth || 0}/month each`, 
+      icon: 'crown' 
+    },
+    { 
+      label: 'No Subscribers', 
+      value: statsData?.noSubscribers.count.toString() || '0', 
+      icon: 'store' 
+    }
   ];
 
+  // Map active plan to existing mock structure for the Edit form if needed
   const plan: SubscriptionPlan = {
     id: 'premium-plan',
-    name: 'Photopia Premium',
-    price: 16,
-    features: [
-        { id: '1', text: 'Priority in search results' },
-        { id: '2', text: 'Extended analytics' },
-        { id: '3', text: 'Remove platform branding' },
-        { id: '4', text: 'Advanced booking tools' },
-        { id: '5', text: 'Priority customer support' },
-    ],
+    name: statsData?.activePlan.name || 'Photopia Premium',
+    price: statsData?.activePlan.price || 16,
+    features: statsData?.activePlan.features.map((f, i) => ({ id: i.toString(), text: f })) || [],
     stats: {
-        subscribers: 1284,
-        monthlyRevenue: 20544
+        subscribers: statsData?.activePlan.subscribers || 0,
+        monthlyRevenue: statsData?.activePlan.monthlyRevenue || 0
     }
   };
 
@@ -72,12 +108,19 @@ const SubscriptionsPage = () => {
         </div>
       </div>
 
-      <SubscriptionStats stats={stats} />
-      <SubscriptionCharts />
+      <SubscriptionStats stats={stats} loading={isLoading} />
+      <SubscriptionCharts 
+        loading={isLoading} 
+        growthData={statsData?.subscriberGrowth} 
+        revenueDistribution={statsData?.revenueDistribution}
+      />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         <PlanCard plan={plan} onEdit={() => setIsEditingPlan(true)} />
-         {/* Placeholder for potential other plans or info, kept empty or could duplicate plan structure if there were multiple */}
+         <PlanCard 
+           plan={statsData?.activePlan} 
+           loading={isLoading}
+           onEdit={() => setIsEditingPlan(true)} 
+         />
       </div>
 
       <div className="space-y-4">

@@ -6,7 +6,7 @@ export interface SubscriptionStat {
     change?: string;
     count?: string;
     subtext?: string;
-    icon?: any; // Lucide icon
+    icon?: string;
     color?: string;
 }
 
@@ -36,4 +36,38 @@ export interface Subscriber {
     nextBilling: string;
     totalRevenue: string;
     avatar?: string;
+}
+
+export interface SubscriptionStatsApiResponse {
+    totalProvider: {
+        count: number;
+        percentageChange: number;
+    };
+    monthlyRevenue: {
+        amount: number;
+        percentageChange: number;
+    };
+    premiumSubscribers: {
+        count: number;
+        pricePerMonth: number;
+    };
+    noSubscribers: {
+        count: number;
+    };
+    subscriberGrowth: {
+        months: string[];
+        premium: number[];
+        noSubscription: number[];
+    };
+    revenueDistribution: {
+        premium: number;
+        noSubscription: number;
+    };
+    activePlan: {
+        name: string;
+        price: number;
+        features: string[];
+        subscribers: number;
+        monthlyRevenue: number;
+    };
 }

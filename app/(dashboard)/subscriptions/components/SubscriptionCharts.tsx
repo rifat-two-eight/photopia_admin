@@ -4,22 +4,55 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell
 } from 'recharts';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const growthData = [
-  { month: 'Jan', Premium: 1000, 'No - Subscription': 150 },
-  { month: 'Feb', Premium: 1050, 'No - Subscription': 160 },
-  { month: 'Mar', Premium: 1100, 'No - Subscription': 170 },
-  { month: 'Apr', Premium: 1200, 'No - Subscription': 180 },
-  { month: 'May', Premium: 1250, 'No - Subscription': 190 },
-  { month: 'Jun', Premium: 1284, 'No - Subscription': 195 },
-];
+interface SubscriptionChartsProps {
+  loading?: boolean;
+  growthData?: {
+    months: string[];
+    premium: number[];
+    noSubscription: number[];
+  };
+  revenueDistribution?: {
+    premium: number;
+    noSubscription: number;
+  };
+}
 
-const revenueData = [
-  { name: 'Premium', value: 20544, color: '#8B5CF6' },
-  { name: 'No - Subscription', value: 18513, color: '#F59E0B' },
-];
+export const SubscriptionCharts: React.FC<SubscriptionChartsProps> = ({ 
+  loading, 
+  growthData, 
+  revenueDistribution 
+}) => {
+  // Transform parallel arrays to Recharts format
+  const transformedGrowthData = growthData?.months.map((month, i) => ({
+    month,
+    Premium: growthData.premium[i],
+    'No - Subscription': growthData.noSubscription[i],
+  })) || [];
 
-export const SubscriptionCharts = () => {
+  const transformedRevenueData = [
+    { name: 'Premium', value: revenueDistribution?.premium || 0, color: '#8B5CF6' },
+    { name: 'No - Subscription', value: revenueDistribution?.noSubscription || 0, color: '#F59E0B' },
+  ];
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {[1, 2].map((i) => (
+          <Card key={i} className="border border-gray-100 shadow-sm">
+            <CardHeader className="pb-2">
+              <Skeleton className="h-5 w-32" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-[250px] w-full rounded-lg" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Subscriber Growth Chart */}
@@ -30,7 +63,7 @@ export const SubscriptionCharts = () => {
         <CardContent>
           <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={growthData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+              <LineChart data={transformedGrowthData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
@@ -71,7 +104,7 @@ export const SubscriptionCharts = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={revenueData}
+                  data={transformedRevenueData}
                   cx="50%"
                   cy="50%"
                   innerRadius={0}
@@ -79,7 +112,7 @@ export const SubscriptionCharts = () => {
                   paddingAngle={0}
                   dataKey="value"
                 >
-                  {revenueData.map((entry, index) => (
+                  {transformedRevenueData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
@@ -92,7 +125,7 @@ export const SubscriptionCharts = () => {
             </ResponsiveContainer>
              {/* Custom Legend Overlay */}
              <div className="absolute bottom-0 right-0 left-0 flex justify-center gap-6 text-xs text-gray-600">
-                {revenueData.map((item) => (
+                {transformedRevenueData.map((item) => (
                     <div key={item.name} className="flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
                         <span>{item.name}: €{item.value.toLocaleString()}</span>
@@ -105,3 +138,4 @@ export const SubscriptionCharts = () => {
     </div>
   );
 };
+

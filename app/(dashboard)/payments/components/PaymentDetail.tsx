@@ -90,8 +90,8 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transactionId, onB
 
   return (
     <div className="space-y-6">
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         onClick={onBack}
         className="text-gray-600 hover:text-gray-900 -ml-2 hover:bg-transparent px-2"
       >
@@ -106,10 +106,9 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transactionId, onB
           <Card className="border-gray-200 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xl font-semibold text-gray-900">Transaction Details</CardTitle>
-              <Badge className={`border-0 text-sm font-normal px-3 py-1 ${
-                transaction.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' : 
-                transaction.status === 'Pending' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'
-              }`}>
+              <Badge className={`border-0 text-sm font-normal px-3 py-1 ${transaction.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' :
+                  transaction.status === 'Pending' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'
+                }`}>
                 {transaction.status}
               </Badge>
             </CardHeader>
@@ -127,7 +126,7 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transactionId, onB
                   <p className="text-xs text-slate-500 mb-1">Transaction Type</p>
                   <p className="text-sm font-medium text-slate-900">{transaction.type}</p>
                 </div>
-                
+
                 <div>
                   <p className="text-xs text-slate-500 mb-1">Payment Method</p>
                   <p className="text-sm font-medium text-slate-900">{transaction.paymentMethod}</p>

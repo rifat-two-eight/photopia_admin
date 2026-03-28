@@ -1,14 +1,15 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users, DollarSign, Crown, Store } from 'lucide-react';
-
 import { SubscriptionStat } from '../types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface SubscriptionStatsProps {
   stats: SubscriptionStat[];
+  loading?: boolean;
 }
 
-const getIcon = (iconName: string) => {
+const getIcon = (iconName?: string) => {
   switch (iconName) {
     case 'users': return <Users className="w-5 h-5 text-blue-500" />;
     case 'dollar': return <DollarSign className="w-5 h-5 text-emerald-500" />;
@@ -18,7 +19,28 @@ const getIcon = (iconName: string) => {
   }
 };
 
-export const SubscriptionStats: React.FC<SubscriptionStatsProps> = ({ stats }) => {
+export const SubscriptionStats: React.FC<SubscriptionStatsProps> = ({ stats, loading }) => {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="border border-gray-100 shadow-sm">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-start mb-2">
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-8 w-24" />
+                </div>
+                <Skeleton className="w-10 h-10 rounded-lg" />
+              </div>
+              <Skeleton className="h-3 w-16 mt-2" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat, index) => (
@@ -36,8 +58,10 @@ export const SubscriptionStats: React.FC<SubscriptionStatsProps> = ({ stats }) =
             {(stat.change || stat.subtext) && (
               <div className="flex items-center gap-2 mt-2">
                 {stat.change && (
-                  <span className="text-xs font-medium text-emerald-600">
-                    {stat.change}
+                  <span className={`text-xs font-medium ${
+                    parseFloat(stat.change) >= 0 ? 'text-emerald-600' : 'text-red-500'
+                  }`}>
+                    {stat.change.startsWith('+') || stat.change.startsWith('-') ? stat.change : `+${stat.change}`}%
                   </span>
                 )}
                 {stat.subtext && (
@@ -53,3 +77,4 @@ export const SubscriptionStats: React.FC<SubscriptionStatsProps> = ({ stats }) =
     </div>
   );
 };
+

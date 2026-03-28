@@ -1,20 +1,65 @@
 {
     "statusCode": 200,
     "success": true,
-    "message": "Recent transactions retrieved successfully",
-    "data": [
-        {
-            "id": "69c5a2afa05ac7da98dc4ff1",
-            "transactionId": "TXN-DC4FF1",
-            "user": {
-                "id": "69a874fb3dddb8394cbc4293",
-                "name": "Tiki TIki TIki"
-            },
-            "type": "Payment",
-            "amount": 52.8,
-            "commission": 2,
-            "date": "2026-03-26T21:18:39.221Z",
-            "status": "Pending"
+    "message": "Subscription management stats retrieved successfully",
+    "data": {
+        "totalProvider": {
+            "count": 7,
+            "percentageChange": 133.3
         },
-    ]
+        "monthlyRevenue": {
+            "amount": 39057,
+            "percentageChange": 100
+        },
+        "premiumSubscribers": {
+            "count": 0,
+            "pricePerMonth": 16
+        },
+        "noSubscribers": {
+            "count": 7
+        },
+        "subscriberGrowth": {
+            "months": [
+                "Jan",
+                "Feb",
+                "Mar",
+                "Apr",
+                "May",
+                "Jun"
+            ],
+            "premium": [
+                900,
+                1050,
+                1150,
+                1200,
+                1250,
+                1284
+            ],
+            "noSubscription": [
+                150,
+                160,
+                170,
+                180,
+                185,
+                187
+            ]
+        },
+        "revenueDistribution": {
+            "premium": 20544,
+            "noSubscription": 18513
+        },
+        "activePlan": {
+            "name": "Photopia Premium",
+            "price": 16,
+            "features": [
+                "Priority in search results",
+                "Extended analytics",
+                "Remove platform branding",
+                "Advanced booking tools",
+                "Priority customer support"
+            ],
+            "subscribers": 0,
+            "monthlyRevenue": 20544
+        }
+    }
 }

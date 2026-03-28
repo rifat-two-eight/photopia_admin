@@ -2,14 +2,49 @@ import React from 'react';
 import { Crown, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { SubscriptionPlan } from '../types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface PlanCardProps {
-  plan: SubscriptionPlan;
-  onEdit: (plan: SubscriptionPlan) => void;
+  plan?: {
+    name: string;
+    price: number;
+    features: string[];
+    subscribers: number;
+    monthlyRevenue: number;
+  };
+  loading?: boolean;
+  onEdit: () => void;
 }
 
-export const PlanCard: React.FC<PlanCardProps> = ({ plan, onEdit }) => {
+export const PlanCard: React.FC<PlanCardProps> = ({ plan, loading, onEdit }) => {
+  if (loading || !plan) {
+    return (
+      <Card className="border border-gray-100 shadow-sm relative overflow-hidden">
+        <CardContent className="p-8">
+          <div className="flex justify-between items-start mb-6">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-8 h-8 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-8 w-16" />
+              </div>
+            </div>
+            <Skeleton className="h-10 w-24" />
+          </div>
+          <div className="space-y-4 mb-8">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-4 w-full" />
+            ))}
+          </div>
+          <div className="flex gap-12 pt-6 border-t border-gray-100">
+            <Skeleton className="h-12 w-20" />
+            <Skeleton className="h-12 w-24" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border border-gray-100 shadow-sm relative overflow-hidden">
       <CardContent className="p-8">
@@ -25,7 +60,7 @@ export const PlanCard: React.FC<PlanCardProps> = ({ plan, onEdit }) => {
              </div>
           </div>
           <Button 
-            onClick={() => onEdit(plan)}
+            onClick={onEdit}
             className="bg-[#1C1C1E] hover:bg-gray-800 text-white shadow-sm"
           >
             Edit Plan
@@ -35,10 +70,10 @@ export const PlanCard: React.FC<PlanCardProps> = ({ plan, onEdit }) => {
         <div className="space-y-4 mb-8">
             <p className="text-sm font-medium text-gray-700">Features:</p>
             <ul className="space-y-2">
-                {plan.features.map((feature) => (
-                    <li key={feature.id} className="flex items-start gap-2 text-sm text-gray-600">
+                {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-sm text-gray-600">
                         <Star className="w-4 h-4 text-amber-400 fill-amber-400 mt-0.5" />
-                        <span>{feature.text}</span>
+                        <span>{feature}</span>
                     </li>
                 ))}
             </ul>
@@ -47,14 +82,15 @@ export const PlanCard: React.FC<PlanCardProps> = ({ plan, onEdit }) => {
         <div className="flex gap-12 pt-6 border-t border-gray-100">
             <div>
                 <p className="text-xs text-gray-500 mb-1">Subscribers</p>
-                <p className="text-xl font-bold text-gray-900">{plan.stats.subscribers}</p>
+                <p className="text-xl font-bold text-gray-900">{plan.subscribers}</p>
             </div>
             <div>
                 <p className="text-xs text-gray-500 mb-1">Monthly Revenue</p>
-                <p className="text-xl font-bold text-gray-900">€{plan.stats.monthlyRevenue.toLocaleString()}</p>
+                <p className="text-xl font-bold text-gray-900">€{plan.monthlyRevenue.toLocaleString()}</p>
             </div>
         </div>
       </CardContent>
     </Card>
   );
 };
+

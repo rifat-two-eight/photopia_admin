@@ -1,5 +1,56 @@
-export type Priority = 'High' | 'Medium' | 'Low';
-export type Status = 'Pending' | 'Under Review' | 'Resolved';
+export type Priority = 'High' | 'Medium' | 'Low' | 'low' | 'medium' | 'high';
+export type Status = 'Pending' | 'Under Review' | 'Resolved' | 'pending' | 'under_review' | 'resolved';
+
+export interface ModerationReportItem {
+    id: string;
+    title: string;
+    description: string;
+    priority: Priority;
+    status: Status;
+    reportedUser: {
+        id: string;
+        name: string;
+    };
+    reportedBy: {
+        id: string;
+        name: string;
+    };
+    date: string;
+}
+
+export interface ModerationReportDetailResponse {
+    report: {
+        id: string;
+        reportId: string;
+        title: string;
+        description: string;
+        priority: Priority;
+        status: Status;
+        reportedUser: {
+            id: string;
+            name: string;
+        };
+        reportedBy: {
+            id: string;
+            name: string;
+        };
+        date: string;
+        reportedContent: string;
+    };
+    userHistory: {
+        totalReports: number;
+        warningsIssued: number;
+        accountAge: string;
+        accountStatus: string;
+    };
+    relatedReports: any[];
+    moderationLog: {
+        action: string;
+        by: string;
+        details: string;
+        timestamp: string;
+    }[];
+}
 
 export interface ModerationStat {
     label: string;
@@ -41,4 +92,10 @@ export interface Report {
     };
     relatedReports?: RelatedReport[];
     logs?: ActivityLog[];
+}
+export interface ModerationStatsApiResponse {
+    pendingReports: number;
+    underReview: number;
+    resolvedToday: number;
+    totalReports: number;
 }
