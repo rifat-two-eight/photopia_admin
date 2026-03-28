@@ -71,7 +71,7 @@ const MessagesPage = () => {
   return (
     <div className="flex h-[calc(100vh-140px)] bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {/* Sidebar - fixed width */}
-      <div className="w-80 md:w-96 flex-shrink-0">
+      <div className="w-80 md:w-96 shrink-0">
         <ConversationList
           chats={chats}
           activeId={activeId || ''}
@@ -83,10 +83,10 @@ const MessagesPage = () => {
       {/* Main Chat Area */}
       <div className="flex-1 min-w-0">
         {activeChat ? (
-          <ChatWindow 
-            chat={activeChat} 
-            messages={messages} 
-            isLoading={isLoadingMessages} 
+          <ChatWindow
+            chat={activeChat}
+            messages={messages}
+            isLoading={isLoadingMessages}
             onMessageSent={handleMessageSent}
           />
         ) : (

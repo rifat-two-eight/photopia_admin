@@ -13,7 +13,7 @@ export default function MostViewedPages() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base text-gray-900 font-medium">Most Viewed Pages</CardTitle>
+        <CardTitle className="text-base text-gray-900 font-medium">Most Viewed Pages (demo)</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-1">

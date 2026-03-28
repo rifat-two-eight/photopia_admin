@@ -1,0 +1,20 @@
+{
+    "statusCode": 200,
+    "success": true,
+    "message": "Recent transactions retrieved successfully",
+    "data": [
+        {
+            "id": "69c5a2afa05ac7da98dc4ff1",
+            "transactionId": "TXN-DC4FF1",
+            "user": {
+                "id": "69a874fb3dddb8394cbc4293",
+                "name": "Tiki TIki TIki"
+            },
+            "type": "Payment",
+            "amount": 52.8,
+            "commission": 2,
+            "date": "2026-03-26T21:18:39.221Z",
+            "status": "Pending"
+        },
+    ]
+}

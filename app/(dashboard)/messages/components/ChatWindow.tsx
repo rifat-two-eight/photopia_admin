@@ -41,8 +41,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
     }
   }, [messages]);
 
-  // Sort messages by date in ascending order (oldest first, newest at bottom)
-  const sortedMessages = [...messages].sort((a, b) => 
+  const sortedMessages = [...messages].sort((a, b) =>
     new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
 

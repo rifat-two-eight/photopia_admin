@@ -1,77 +1,93 @@
+// components/dashboard/CountryRanking.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, ChevronDown, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { CountryRankingItem } from "@/types/dashboard";
 
-const allRankingData = [
+const demoRankingData = [
   {
     country: "Germany",
     revenue: "€397,855",
     growth: "+8.3%",
-    rankJan2026: "1st",
-    rankDec2025: "1st",
-    rankNov2025: "1st",
+    rankCurrent: 1,
+    rankPrev1: 1,
+    rankPrev2: 1,
   },
   {
     country: "France",
     revenue: "€541,112",
     growth: "+13.9%",
-    rankJan2026: "2nd",
-    rankDec2025: "1st",
-    rankNov2025: "1st",
+    rankCurrent: 2,
+    rankPrev1: 1,
+    rankPrev2: 1,
   },
   {
     country: "United Kingdom",
     revenue: "€117,369",
     growth: "+21.1%",
-    rankJan2026: "3rd",
-    rankDec2025: "1st",
-    rankNov2025: "7th",
+    rankCurrent: 3,
+    rankPrev1: 1,
+    rankPrev2: 7,
   },
   {
     country: "Spain",
     revenue: "€102,100",
     growth: "+15.4%",
-    rankJan2026: "4th",
-    rankDec2025: "2nd",
-    rankNov2025: "3rd",
+    rankCurrent: 4,
+    rankPrev1: 2,
+    rankPrev2: 3,
   },
   {
     country: "Italy",
     revenue: "€95,540",
     growth: "+10.2%",
-    rankJan2026: "5th",
-    rankDec2025: "4th",
-    rankNov2025: "6th",
+    rankCurrent: 5,
+    rankPrev1: 4,
+    rankPrev2: 6,
   },
   {
     country: "Netherlands",
     revenue: "€88,200",
     growth: "+7.5%",
-    rankJan2026: "6th",
-    rankDec2025: "5th",
-    rankNov2025: "5th",
+    rankCurrent: 6,
+    rankPrev1: 5,
+    rankPrev2: 5,
   },
   {
     country: "Belgium",
     revenue: "€76,400",
     growth: "+5.1%",
-    rankJan2026: "7th",
-    rankDec2025: "6th",
-    rankNov2025: "8th",
+    rankCurrent: 7,
+    rankPrev1: 6,
+    rankPrev2: 8,
   },
 ];
 
-const uniqueCountries = Array.from(new Set(allRankingData.map(d => d.country)));
+interface CountryRankingProps {
+  data?: CountryRankingItem[];
+}
 
-export default function CountryRanking() {
+const formatRank = (rank: number) => {
+  if (rank === 1) return "1st";
+  if (rank === 2) return "2nd";
+  if (rank === 3) return "3rd";
+  return `${rank}th`;
+};
+
+export default function CountryRanking({ data }: CountryRankingProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const filteredData = allRankingData.filter((item) => {
+  const isDemo = !data || data.length === 0;
+  const rankingData = useMemo(() => (!isDemo ? data : demoRankingData), [data, isDemo]);
+  
+  const uniqueCountries = useMemo(() => Array.from(new Set(rankingData.map(d => d.country))), [rankingData]);
+
+  const filteredData = rankingData.filter((item) => {
     const matchesSearch = item.country.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCountry = selectedCountry ? item.country === selectedCountry : true;
     return matchesSearch && matchesCountry;
@@ -87,7 +103,9 @@ export default function CountryRanking() {
     <Card className="border-none shadow-sm ring-1 ring-gray-100">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
         <div className="space-y-1">
-          <CardTitle className="text-lg font-semibold text-gray-900">Country Ranking</CardTitle>
+          <CardTitle className="text-lg font-semibold text-gray-900">
+            Country Ranking {isDemo && "(demo)"}
+          </CardTitle>
           <p className="text-sm text-gray-500">
             Top countries by revenue and growth
           </p>
@@ -157,13 +175,13 @@ export default function CountryRanking() {
                   Growth
                 </th>
                 <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
-                  Rank January 2026
+                  Rank Current
                 </th>
                 <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
-                  Rank December 2025
+                  Rank Prev 1
                 </th>
                 <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
-                  Rank November 2025
+                  Rank Prev 2
                 </th>
               </tr>
             </thead>
@@ -175,19 +193,19 @@ export default function CountryRanking() {
                         {item.country}
                     </td>
                     <td className="py-4 px-4 text-sm text-gray-600">
-                        {item.revenue}
+                        {typeof item.revenue === "number" ? `€${item.revenue.toLocaleString()}` : item.revenue}
                     </td>
                     <td className="py-4 px-4 text-sm font-medium text-emerald-500">
-                        {item.growth}
+                        {typeof item.growth === "number" ? `${item.growth >= 0 ? "+" : ""}${item.growth}%` : item.growth}
                     </td>
                     <td className="py-4 px-4 text-sm text-center text-gray-600">
-                        {item.rankJan2026}
+                        {formatRank(item.rankCurrent)}
                     </td>
                     <td className="py-4 px-4 text-sm text-center text-gray-600">
-                        {item.rankDec2025}
+                        {formatRank(item.rankPrev1)}
                     </td>
                     <td className="py-4 px-4 text-sm text-center text-gray-500">
-                        {item.rankNov2025}
+                        {formatRank(item.rankPrev2)}
                     </td>
                     </tr>
                 ))
@@ -205,3 +223,4 @@ export default function CountryRanking() {
     </Card>
   );
 }
+

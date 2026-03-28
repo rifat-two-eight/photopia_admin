@@ -12,7 +12,7 @@ export default function AcquisitionChannel() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-medium text-gray-900">Acquisition by Channel</CardTitle>
+        <CardTitle className="text-base font-medium text-gray-900">Acquisition by Channel (demo)</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

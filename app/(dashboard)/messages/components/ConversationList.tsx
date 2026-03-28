@@ -25,7 +25,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
   isLoading
 }) => {
   // Sort chats by updatedAt in descending order (newest update at top)
-  const sortedChats = [...chats].sort((a, b) => 
+  const sortedChats = [...chats].sort((a, b) =>
     new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
 
@@ -80,7 +80,7 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                       {chat.unreadCount > 0 ? `${chat.unreadCount} unread messages` : 'No new messages'}
                     </p>
                     {chat.unreadCount > 0 && (
-                      <span className="bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[1.25rem] text-center">
+                      <span className="bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center">
                         {chat.unreadCount}
                       </span>
                     )}

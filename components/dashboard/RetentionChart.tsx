@@ -14,7 +14,7 @@ export default function RetentionChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-medium text-gray-900">Retention & Engagement</CardTitle>
+        <CardTitle className="text-base font-medium text-gray-900">Retention & Engagement (demo)</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>

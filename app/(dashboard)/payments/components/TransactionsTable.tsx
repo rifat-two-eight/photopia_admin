@@ -3,12 +3,15 @@ import { Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Transaction, TransactionStatus } from '../types';
+import { RecentTransactionItem, TransactionStatus } from '../types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface TransactionsTableProps {
-  transactions: Transaction[];
-  onViewDetails: (transaction: Transaction) => void;
+  transactions: RecentTransactionItem[];
+  onViewDetails: (transaction: RecentTransactionItem) => void;
+  loading?: boolean;
 }
+
 
 const getStatusBadgeStyle = (status: TransactionStatus) => {
   switch (status) {
@@ -19,7 +22,7 @@ const getStatusBadgeStyle = (status: TransactionStatus) => {
   }
 };
 
-const getTypeStyle = (type: Transaction['type']) => {
+const getTypeStyle = (type: RecentTransactionItem['type']) => {
   switch (type) {
     case 'Payment': return 'bg-blue-50 text-blue-700 hover:bg-blue-50';
     case 'Subscription': return 'bg-purple-50 text-purple-700 hover:bg-purple-50';
@@ -29,6 +32,21 @@ const getTypeStyle = (type: Transaction['type']) => {
 };
 
 export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactions, onViewDetails }) => {
+  const formatCurrency = (amt: number) => `€${amt.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`;
+  const formatDate = (isoStr: string) => {
+    try {
+      return new Date(isoStr).toLocaleDateString('de-DE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return isoStr;
+    }
+  };
+
   return (
     <Card className="shadow-sm overflow-hidden py-0 border border-gray-100">
       <CardContent className="p-0">
@@ -66,10 +84,10 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
               {transactions.map((txn) => (
                 <tr key={txn.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-6 h-16 text-sm font-medium text-gray-900">
-                    {txn.id}
+                    {txn.transactionId}
                   </td>
                   <td className="px-6 h-16 text-sm text-gray-900">
-                    {txn.user}
+                    {txn.user.name}
                   </td>
                   <td className="px-6 h-16">
                     <Badge variant="secondary" className={`font-medium border-0 ${getTypeStyle(txn.type)}`}>
@@ -77,15 +95,15 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
                     </Badge>
                   </td>
                   <td className="px-6 h-16 text-sm font-medium text-gray-900">
-                    {txn.amount}
+                    {formatCurrency(txn.amount)}
                   </td>
                   <td className={`px-6 h-16 text-sm font-medium ${
-                    parseFloat(txn.commission.replace('€', '')) < 0 ? 'text-red-600' : 'text-emerald-600'
+                    txn.commission < 0 ? 'text-red-600' : 'text-emerald-600'
                   }`}>
-                    {txn.commission}
+                    {formatCurrency(txn.commission)}
                   </td>
                   <td className="px-6 h-16 text-sm text-gray-500">
-                    {txn.date}
+                    {formatDate(txn.date)}
                   </td>
                   <td className="px-6 h-16">
                     <Badge variant="secondary" className={`font-normal ${getStatusBadgeStyle(txn.status)}`}>
@@ -105,6 +123,13 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
                   </td>
                 </tr>
               ))}
+              {transactions.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-6 py-10 text-center text-gray-500">
+                    No transactions found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -112,3 +137,4 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
     </Card>
   );
 };
+

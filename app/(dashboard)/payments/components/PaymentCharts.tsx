@@ -5,30 +5,23 @@ import {
   BarChart, Bar
 } from 'recharts';
 
-const trendData = [
-  { month: 'Jan', commissions: 40000, transactions: 2000 },
-  { month: 'Feb', commissions: 48000, transactions: 2500 },
-  { month: 'Mar', commissions: 45000, transactions: 2300 },
-  { month: 'Apr', commissions: 52000, transactions: 2800 },
-  { month: 'May', commissions: 58000, transactions: 3000 },
-  { month: 'Jun', commissions: 62000, transactions: 3200 },
-];
+interface PaymentChartsProps {
+  trendData?: { month: string; commissions: number; transactions: number }[];
+  categoryData?: { name: string; value: number }[];
+}
 
-const categoryData = [
-  { name: 'Wedding', value: 12000 },
-  { name: 'Portrait', value: 8500 },
-  { name: 'Event', value: 15000 },
-  { name: 'Commercial', value: 22000 },
-  { name: 'Product', value: 9000 },
-];
+export const PaymentCharts: React.FC<PaymentChartsProps> = ({ trendData = [], categoryData = [] }) => {
+  const isTrendDemo = trendData.length === 0;
+  const isCategoryDemo = categoryData.length === 0;
 
-export const PaymentCharts = () => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Trend Chart */}
       <Card className="border border-gray-100 shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold text-gray-900">Revenue & Commissions Trend</CardTitle>
+          <CardTitle className="text-base font-semibold text-gray-900">
+            Revenue & Commissions Trend {isTrendDemo && "(demo)"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[250px] w-full">
@@ -67,7 +60,9 @@ export const PaymentCharts = () => {
       {/* Category Chart */}
       <Card className="border border-gray-100 shadow-sm">
         <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold text-gray-900">Commissions by Category</CardTitle>
+          <CardTitle className="text-base font-semibold text-gray-900">
+            Commissions by Category {isCategoryDemo && "(demo)"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[250px] w-full">
@@ -97,3 +92,4 @@ export const PaymentCharts = () => {
     </div>
   );
 };
+

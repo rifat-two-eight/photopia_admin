@@ -48,3 +48,80 @@ export interface Transaction {
 
     history?: PaymentHistoryItem[];
 }
+export interface PaymentStatsApiResponse {
+    totalRevenue: {
+        amount: number;
+        percentageChange: number;
+    };
+    commissionsEarned: {
+        amount: number;
+        averageRate: number;
+    };
+    subscriptions: {
+        amount: number;
+        activeSubscribers: number;
+    };
+    refunds: {
+        amount: number;
+        refundRequests: number;
+    };
+    trends: {
+        commissions: number[];
+        totalTransactions: number[];
+        months: string[];
+    };
+    categories: {
+        category: string;
+        amount: number;
+    }[];
+}
+export interface RecentTransactionItem {
+    id: string;
+    transactionId: string;
+    user: {
+        id: string;
+        name: string;
+    };
+    type: TransactionType;
+    amount: number;
+    commission: number;
+    date: string;
+    status: TransactionStatus;
+}
+
+export interface TransactionDetailApiResponse {
+    transaction: {
+        id: string;
+        transactionId: string;
+        user: {
+            id: string;
+            name: string;
+        };
+        type: TransactionType;
+        amount: number;
+        commission: number;
+        date: string;
+        status: TransactionStatus;
+        paymentMethod: string;
+        baseAmount: number;
+        providerReceives: number;
+        cardholderName: string;
+        expiryDate: string;
+        invoiceNumber: string;
+    };
+    paymentHistory: {
+        status: string;
+        amount: number;
+        timestamp: string;
+    }[];
+    commissionSummary: {
+        platformFee: number;
+        earnings: number;
+    };
+    serviceDetails: {
+        type: string;
+        date: string;
+        location: string;
+        duration: string;
+    };
+}

@@ -1,16 +1,93 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, CreditCard, User, Calendar, FileText, Download } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Transaction } from '../types';
+import { TransactionDetailApiResponse } from '../types';
+import axiosInstance from '@/lib/axios';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface PaymentDetailProps {
-  transaction: Transaction;
+  transactionId: string;
   onBack: () => void;
 }
 
-export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transaction, onBack }) => {
+interface ApiResponse<T> {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: T;
+}
+
+export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transactionId, onBack }) => {
+  const [data, setData] = useState<TransactionDetailApiResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get<ApiResponse<TransactionDetailApiResponse>>(`/dashboard/recent-transactions/${transactionId}`);
+        if (response.data.success) {
+          setData(response.data.data);
+        } else {
+          setError(response.data.message || 'Failed to fetch transaction details');
+        }
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'An error occurred while fetching details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDetails();
+  }, [transactionId]);
+
+  const formatCurrency = (amt: number) => `€${amt.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`;
+  const formatDate = (isoStr: string) => {
+    try {
+      return new Date(isoStr).toLocaleDateString('de-DE', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return isoStr;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-32" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="h-[400px] w-full rounded-xl" />
+            <Skeleton className="h-[200px] w-full rounded-xl" />
+          </div>
+          <div className="space-y-6">
+            <Skeleton className="h-[150px] w-full rounded-xl" />
+            <Skeleton className="h-[250px] w-full rounded-xl" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-xl shadow-md p-10">
+        <p className="text-red-500 font-medium mb-4">{error || 'No data found'}</p>
+        <Button onClick={onBack} variant="outline">Back to Payments</Button>
+      </div>
+    );
+  }
+
+  const { transaction, paymentHistory, commissionSummary, serviceDetails } = data;
+
   return (
     <div className="space-y-6">
       <Button 
@@ -29,19 +106,22 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transaction, onBac
           <Card className="border-gray-200 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xl font-semibold text-gray-900">Transaction Details</CardTitle>
-              <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-50 text-sm font-normal px-3 py-1">
-                Completed
+              <Badge className={`border-0 text-sm font-normal px-3 py-1 ${
+                transaction.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' : 
+                transaction.status === 'Pending' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'
+              }`}>
+                {transaction.status}
               </Badge>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-y-6 gap-x-12 mb-8">
                 <div>
                   <p className="text-xs text-slate-500 mb-1">ID:</p>
-                  <p className="text-sm font-medium text-slate-900">{transaction.id}</p>
+                  <p className="text-sm font-medium text-slate-900">{transaction.transactionId}</p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-500 mb-1">Transaction Date</p>
-                  <p className="text-sm font-medium text-slate-900">{transaction.date}</p>
+                  <p className="text-sm font-medium text-slate-900">{formatDate(transaction.date)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-500 mb-1">Transaction Type</p>
@@ -54,7 +134,7 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transaction, onBac
                 </div>
                 <div>
                   <p className="text-xs text-slate-500 mb-1">User</p>
-                  <p className="text-sm font-medium text-slate-900">{transaction.user}</p>
+                  <p className="text-sm font-medium text-slate-900">{transaction.user.name}</p>
                 </div>
               </div>
 
@@ -63,15 +143,15 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transaction, onBac
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Base Amount</span>
-                    <span className="font-semibold text-gray-900">{transaction.breakdown?.baseAmount}</span>
+                    <span className="font-semibold text-gray-900">{formatCurrency(transaction.baseAmount)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Commission ({transaction.breakdown?.commissionRate})</span>
-                    <span className="font-medium text-emerald-600">{transaction.breakdown?.commissionAmount}</span>
+                    <span className="text-gray-500">Commission</span>
+                    <span className="font-medium text-emerald-600">{formatCurrency(transaction.commission)}</span>
                   </div>
                   <div className="pt-3 border-t border-gray-100 flex justify-between text-base">
                     <span className="font-medium text-gray-900">Provider Receives</span>
-                    <span className="font-bold text-gray-900">{transaction.breakdown?.providerReceives}</span>
+                    <span className="font-bold text-gray-900">{formatCurrency(transaction.providerReceives)}</span>
                   </div>
                 </div>
               </div>
@@ -85,7 +165,7 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transaction, onBac
             </CardHeader>
             <CardContent>
               <div className="relative pl-2 space-y-8 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-gray-200">
-                {transaction.history?.map((item, index) => (
+                {paymentHistory.map((item, index) => (
                   <div key={index} className="relative pl-6">
                     <div className="absolute left-0 top-1.5 w-5 h-5 bg-white border-2 border-green-500 rounded-full z-10 box-content -ml-[3.5px]">
                       <div className="w-2 h-2 bg-green-500 rounded-full m-1.5" />
@@ -93,9 +173,9 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transaction, onBac
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="text-sm font-medium text-gray-900">{item.status}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">Amount: {item.amount}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Amount: {formatCurrency(item.amount)}</p>
                       </div>
-                      <span className="text-xs text-gray-400">{item.date}</span>
+                      <span className="text-xs text-gray-400">{formatDate(item.timestamp)}</span>
                     </div>
                   </div>
                 ))}
@@ -111,19 +191,19 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transaction, onBac
             <CardContent className="space-y-4">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Service Type</p>
-                <p className="text-sm font-medium text-gray-900">{transaction.serviceDetails?.type}</p>
+                <p className="text-sm font-medium text-gray-900">{serviceDetails.type}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">Service Date</p>
-                <p className="text-sm font-medium text-gray-900">{transaction.serviceDetails?.date}</p>
+                <p className="text-sm font-medium text-gray-900">{formatDate(serviceDetails.date)}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">Location</p>
-                <p className="text-sm font-medium text-gray-900">{transaction.serviceDetails?.location}</p>
+                <p className="text-sm font-medium text-gray-900">{serviceDetails.location}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">Duration</p>
-                <p className="text-sm font-medium text-gray-900">{transaction.serviceDetails?.duration}</p>
+                <p className="text-sm font-medium text-gray-900">{serviceDetails.duration}</p>
               </div>
             </CardContent>
           </Card>
@@ -166,14 +246,14 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transaction, onBac
                 <User className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-xs text-gray-500">Cardholder</p>
-                  <p className="text-sm text-gray-900">{transaction.cardHolder}</p>
+                  <p className="text-sm text-gray-900">{transaction.cardholderName}</p>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Calendar className="w-5 h-5 text-gray-400 mt-0.5" />
                 <div>
                   <p className="text-xs text-gray-500">Expiry</p>
-                  <p className="text-sm text-gray-900">{transaction.expiry}</p>
+                  <p className="text-sm text-gray-900">{transaction.expiryDate}</p>
                 </div>
               </div>
               <div className="flex gap-3">
@@ -194,11 +274,11 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transaction, onBac
             <CardContent>
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm text-gray-600">Platform Fee</span>
-                <span className="text-sm font-medium text-gray-900">{transaction.commission}</span>
+                <span className="text-sm font-medium text-gray-900">{formatCurrency(commissionSummary.platformFee)}</span>
               </div>
               <div className="pt-2 border-t border-blue-200/50 flex justify-between items-center">
                 <span className="text-sm font-medium text-gray-900">Your Earnings</span>
-                <span className="text-sm font-bold text-emerald-600">{transaction.commission}</span>
+                <span className="text-sm font-bold text-emerald-600">{formatCurrency(commissionSummary.earnings)}</span>
               </div>
             </CardContent>
           </Card>
@@ -207,3 +287,4 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transaction, onBac
     </div>
   );
 };
+

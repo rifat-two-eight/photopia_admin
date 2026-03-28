@@ -8,69 +8,75 @@ import {
   Users,
   Building2,
   Clock,
+  AlertCircle,
 } from "lucide-react";
+import { MainMetrics } from "@/types/dashboard";
 
-export default function StatsGrid() {
+interface StatsGridProps {
+  metrics?: MainMetrics;
+}
+
+export default function StatsGrid({ metrics }: StatsGridProps) {
   const statsRow1 = [
     {
       title: "GMV (Gross Revenue)",
-      value: "€642,900",
+      value: metrics?.gmv ? `€${(metrics.gmv.amount || 0).toLocaleString()}` : "€0",
       icon: DollarSign,
       iconBgColor: "bg-green-100",
       iconColor: "text-green-600",
-      trend: "+25.8%",
-      trendUp: true,
+      trend: `${metrics?.gmv?.change || 0}%`,
+      trendUp: (metrics?.gmv?.change || 0) >= 0,
     },
     {
       title: "Total Bookings",
-      value: "2,947",
+      value: metrics?.newBookings ? (metrics.newBookings.count || 0).toLocaleString() : "0",
       icon: FileText,
       iconBgColor: "bg-blue-100",
       iconColor: "text-blue-600",
-      trend: "+12.5%",
-      trendUp: true,
+      trend: `${metrics?.newBookings?.change || 0}%`,
+      trendUp: (metrics?.newBookings?.change || 0) >= 0,
     },
     {
       title: "Net Revenue (After Fees)",
-      value: "€57,432",
+      value: metrics?.netRevenue ? `€${(metrics.netRevenue.amount || 0).toLocaleString()}` : "€0",
       icon: TrendingUp,
       iconBgColor: "bg-red-100",
       iconColor: "text-red-600",
-      trend: "+18.2%",
-      trendUp: true,
+      trend: `${metrics?.netRevenue?.change || 0}%`,
+      trendUp: (metrics?.netRevenue?.change || 0) >= 0,
     },
     {
       title: "Overall Conversion Rate",
-      value: "3.8%",
+      value: metrics?.conversionRate ? `${metrics.conversionRate.rate || 0}%` : "0%",
       icon: Percent,
       iconBgColor: "bg-orange-100",
       iconColor: "text-orange-600",
-      trend: "+9.4%",
-      trendUp: true,
+      trend: `${metrics?.conversionRate?.change || 0}%`,
+      trendUp: (metrics?.conversionRate?.change || 0) >= 0,
     },
   ];
 
   const statsRow2 = [
     {
       title: "Active Creators",
-      value: "810",
+      value: metrics?.activeCreators ? (metrics.activeCreators.count || 0).toLocaleString() : "0",
       icon: Users,
       iconBgColor: "bg-purple-100",
       iconColor: "text-purple-600",
-      trend: "+24.1%",
-      trendUp: true,
+      trend: `${metrics?.activeCreators?.change || 0}%`,
+      trendUp: (metrics?.activeCreators?.change || 0) >= 0,
     },
     {
-      title: "Active Requesters (Clients)",
-      value: "2,847",
+      title: "Active Customers",
+      value: metrics?.activeCustomers ? (metrics.activeCustomers.count || 0).toLocaleString() : "0",
       icon: Building2,
       iconBgColor: "bg-cyan-100",
       iconColor: "text-cyan-600",
-      trend: "-3.2%",
-      trendUp: false,
+      trend: `${metrics?.activeCustomers?.change || 0}%`,
+      trendUp: (metrics?.activeCustomers?.change || 0) >= 0,
     },
     {
-      title: "Pending Approval",
+      title: "Pending Approval (demo)",
       value: "47",
       icon: Clock,
       iconBgColor: "bg-yellow-100",
@@ -80,30 +86,31 @@ export default function StatsGrid() {
     },
     {
       title: "Avg Response Time",
-      value: "2.3h",
+      value: metrics?.avgResponseTime ? `${metrics.avgResponseTime.hours || 0}h` : "0h",
       icon: Clock,
       iconBgColor: "bg-green-100",
       iconColor: "text-green-600",
-      trend: "+9.2%",
-      trendUp: true,
+      trend: `${metrics?.avgResponseTime?.change || 0}%`,
+      trendUp: (metrics?.avgResponseTime?.change || 0) <= 0,
     },
   ];
+
 
   return (
     <div className="space-y-4">
       {/* Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statsRow1.map((stat, index) => (
-          <StatsCard key={index} {...stat} />
+          <StatsCard key={index} {...stat} value={String(stat.value)} />
         ))}
       </div>
 
       {/* Row 2 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statsRow2.map((stat, index) => (
-          <StatsCard key={index} {...stat} />
+          <StatsCard key={index} {...stat} value={String(stat.value)} />
         ))}
       </div>
     </div>
   );
-}
+}
