@@ -31,10 +31,63 @@ export interface GrowthService {
 
 export interface MonthData {
     month: string;
-    Wedding?: number;
-    Portrait?: number;
-    Event?: number;
-    Commercial?: number;
-    Product?: number;
-    RealEstate?: number;
+    [key: string]: string | number | undefined;
+}
+
+export interface BookingStatus {
+    status: string;
+    count: number;
+    percentage: number;
+}
+
+export interface ConversionMetrics {
+    months: string[];
+    bookings: number[];
+    conversionRate: number[];
+    profileViews: number[];
+    totalProfileViews: number;
+    totalBookings: number;
+    averageConversionRate: number;
+}
+
+export interface ServiceBreakdownItem {
+    serviceType: string;
+    bookings: number;
+    avgPrice: number;
+    grossRevenue: number;
+    commission: number;
+    netRevenue: number;
+}
+
+export interface TopProviderItem {
+    rank: number;
+    name: string;
+    bookings: number;
+    rating: number;
+    revenue: number;
+    country: string;
+}
+
+export interface GrowthServiceItem {
+    name: string;
+    bookings: number;
+    growthPercentage: number;
+}
+
+export interface AdvancedAnalyticsResponse {
+    summary: {
+        totalBookings: { count: number; percentageChange: number };
+        grossRevenue: { amount: number; percentageChange: number };
+        netRevenue: { amount: number; percentageChange: number; commission: number };
+        conversionRate: { rate: number; percentageChange: number };
+    };
+    breakdownByService: ServiceBreakdownItem[];
+    revenueTrends: {
+        months: string[];
+        categories: { name: string; data: number[] }[];
+    };
+    bookingStatusDistribution: BookingStatus[];
+    profileToBookingConversion: ConversionMetrics;
+    topPerformingProviders: TopProviderItem[];
+    highestGrowthServices: GrowthServiceItem[];
 }

@@ -5,93 +5,24 @@ import { Star, ChevronDown, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const rankingData = [
-  {
-    rank: 1,
-    provider: "Elite Photography Studio",
-    country: "Germany",
-    revenue: "€48,500",
-    bookings: 142,
-    rating: 4.9,
-  },
-  {
-    rank: 2,
-    provider: "Creative Lens Co.",
-    country: "France",
-    revenue: "€42,300",
-    bookings: 128,
-    rating: 4.8,
-  },
-  {
-    rank: 3,
-    provider: "Moment Capture Pro",
-    country: "United Kingdom",
-    revenue: "€38,700",
-    bookings: 115,
-    rating: 4.9,
-  },
-  {
-    rank: 4,
-    provider: "Vision Arts Studio",
-    country: "Spain",
-    revenue: "€35,200",
-    bookings: 98,
-    rating: 4.7,
-  },
-  {
-    rank: 5,
-    provider: "Perfect Shot Photography",
-    country: "Italy",
-    revenue: "€32,800",
-    bookings: 94,
-    rating: 4.8,
-  },
-  {
-    rank: 6,
-    provider: "Snapshot Specialists",
-    country: "Netherlands",
-    revenue: "€29,600",
-    bookings: 87,
-    rating: 4.6,
-  },
-  {
-    rank: 7,
-    provider: "Light & Shadow Studio",
-    country: "Germany",
-    revenue: "€27,400",
-    bookings: 81,
-    rating: 4.7,
-  },
-  {
-    rank: 8,
-    provider: "Artistic Vision Pro",
-    country: "United Kingdom",
-    revenue: "€25,900",
-    bookings: 76,
-    rating: 4.8,
-  },
-  {
-    rank: 9,
-    provider: "Focus Point Studios",
-    country: "Spain",
-    revenue: "€24,100",
-    bookings: 72,
-    rating: 4.5,
-  },
-  {
-    rank: 10,
-    provider: "Pixel Perfect Photography",
-    country: "France",
-    revenue: "€22,800",
-    bookings: 68,
-    rating: 4.7,
-  },
-];
+import { TopProviderItem } from "../types";
 
-const filters = ["All Providers", "By Country", "By City", "By Category"];
-const uniqueCountries = Array.from(new Set(rankingData.map(d => d.country)));
+interface TopPerformingProvidersProps {
+  providers?: TopProviderItem[];
+}
 
-export default function TopPerformingProviders() {
+export default function TopPerformingProviders({ providers = [] }: TopPerformingProvidersProps) {
+  const rankingData = providers.map(p => ({
+    rank: p.rank,
+    provider: p.name,
+    country: p.country,
+    revenue: `€${p.revenue.toLocaleString()}`,
+    bookings: p.bookings,
+    rating: p.rating,
+  }));
+
+  const filters = ["All Providers", "By Country", "By City (demo)", "By Category (demo)"];
+  const uniqueCountries = Array.from(new Set(rankingData.map(d => d.country)));
   const [activeFilter, setActiveFilter] = useState("By Country");
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

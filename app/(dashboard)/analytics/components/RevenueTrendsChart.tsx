@@ -9,7 +9,12 @@ interface RevenueTrendsChartProps {
     data: MonthData[];
 }
 
+const COLORS = ['#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6', '#14B8A6'];
+
 export const RevenueTrendsChart: React.FC<RevenueTrendsChartProps> = ({ data }) => {
+  // Get all unique keys except 'month' to render dynamic lines
+  const categories = data.length > 0 ? Object.keys(data[0]).filter(key => key !== 'month') : [];
+
   return (
     <Card className="border border-gray-100 shadow-sm">
       <CardHeader className="pb-2">
@@ -21,17 +26,29 @@ export const RevenueTrendsChart: React.FC<RevenueTrendsChartProps> = ({ data }) 
             <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
               <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 12, fill: '#6B7280' }} 
+                tickFormatter={(value) => `€${value.toLocaleString()}`}
+              />
               <Tooltip 
                 contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 itemStyle={{ fontSize: '12px' }}
+                formatter={(value: any) => [`€${value.toLocaleString()}`, 'Revenue']}
               />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '12px' }} />
               
-              <Line type="monotone" dataKey="Commercial" stroke="#F59E0B" strokeWidth={2} dot={{ r: 4, strokeWidth: 2, fill: '#F59E0B', stroke: '#fff' }} />
-              <Line type="monotone" dataKey="Event" stroke="#10B981" strokeWidth={2} dot={{ r: 4, strokeWidth: 2, fill: '#10B981', stroke: '#fff' }} />
-              <Line type="monotone" dataKey="Portrait" stroke="#3B82F6" strokeWidth={2} dot={{ r: 4, strokeWidth: 2, fill: '#3B82F6', stroke: '#fff' }} />
-              <Line type="monotone" dataKey="Wedding" stroke="#EC4899" strokeWidth={2} dot={{ r: 4, strokeWidth: 2, fill: '#EC4899', stroke: '#fff' }} />
+              {categories.map((category, index) => (
+                <Line 
+                    key={category}
+                    type="monotone" 
+                    dataKey={category} 
+                    stroke={COLORS[index % COLORS.length]} 
+                    strokeWidth={2} 
+                    dot={{ r: 4, strokeWidth: 2, fill: COLORS[index % COLORS.length], stroke: '#fff' }} 
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         </div>

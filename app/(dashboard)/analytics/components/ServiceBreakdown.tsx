@@ -39,11 +39,19 @@ export const ServiceBreakdown: React.FC<ServiceBreakdownProps> = ({ data }) => {
                     {/* Totals Row */}
                     <tr className="bg-gray-50/50 font-semibold">
                         <td className="px-6 py-4 text-sm text-gray-900">Total</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">1623</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                            {data.reduce((acc, curr) => acc + curr.bookings, 0)}
+                        </td>
                         <td className="px-6 py-4 text-sm text-gray-900">-</td>
-                        <td className="px-6 py-4 text-sm text-gray-900">€343,140</td>
-                        <td className="px-6 py-4 text-sm text-red-600">€14,857</td>
-                        <td className="px-6 py-4 text-sm text-emerald-600">€328,283</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                            €{data.reduce((acc, curr) => acc + parseFloat(curr.grossRevenue.replace('€', '').replace(/,/g, '')), 0).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-red-600">
+                            €{data.reduce((acc, curr) => acc + parseFloat(curr.commission.replace('€', '').replace(/,/g, '')), 0).toLocaleString()}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-emerald-600">
+                            €{data.reduce((acc, curr) => acc + parseFloat(curr.netRevenue.replace('€', '').replace(/,/g, '')), 0).toLocaleString()}
+                        </td>
                     </tr>
                 </tbody>
             </table>

@@ -4,16 +4,19 @@ import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 
-const data = [
-  { month: 'Jan', bookings: 12000, views: 1000, rate: 10 },
-  { month: 'Feb', bookings: 12500, views: 1200, rate: 10.5 },
-  { month: 'Mar', bookings: 13800, views: 1300, rate: 11 },
-  { month: 'Apr', bookings: 15000, views: 1500, rate: 11.5 },
-  { month: 'May', bookings: 16500, views: 1800, rate: 12 },
-  { month: 'Jun', bookings: 18500, views: 2405, rate: 13 },
-];
+import { ConversionMetrics } from '../types';
 
-export const ConversionChart = () => {
+interface ConversionChartProps {
+    data: ConversionMetrics;
+}
+
+export const ConversionChart: React.FC<ConversionChartProps> = ({ data }) => {
+  const chartData = data.months.map((month, idx) => ({
+    month,
+    bookings: data.profileViews[idx],
+    views: data.bookings[idx],
+    rate: data.conversionRate[idx]
+  }));
   return (
     <div className="space-y-6">
         <Card className="border border-gray-100 shadow-sm">
@@ -23,7 +26,7 @@ export const ConversionChart = () => {
             <CardContent>
                 <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={data} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                        <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                             <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#6B7280' }} />
                             <YAxis 
@@ -54,24 +57,23 @@ export const ConversionChart = () => {
             </CardContent>
         </Card>
 
-        {/* Summary Statistics below chart */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="bg-blue-50/50 border-blue-100 border shadow-sm">
                 <CardContent className="p-6 text-center">
                     <p className="text-sm font-medium text-gray-500 mb-1">Total Profile Views</p>
-                    <p className="text-2xl font-bold text-blue-600">18,500</p>
+                    <p className="text-2xl font-bold text-blue-600">{data.totalProfileViews.toLocaleString()}</p>
                 </CardContent>
             </Card>
             <Card className="bg-green-50/50 border-green-100 border shadow-sm">
                 <CardContent className="p-6 text-center">
                     <p className="text-sm font-medium text-gray-500 mb-1">Total Bookings</p>
-                    <p className="text-2xl font-bold text-green-600">2,405</p>
+                    <p className="text-2xl font-bold text-green-600">{data.totalBookings.toLocaleString()}</p>
                 </CardContent>
             </Card>
             <Card className="bg-orange-50/50 border-orange-100 border shadow-sm">
                 <CardContent className="p-6 text-center">
                     <p className="text-sm font-medium text-gray-500 mb-1">Conversion Rate</p>
-                    <p className="text-2xl font-bold text-orange-600">13%</p>
+                    <p className="text-2xl font-bold text-orange-600">{data.averageConversionRate}%</p>
                 </CardContent>
             </Card>
         </div>

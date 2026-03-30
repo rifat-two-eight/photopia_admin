@@ -1,65 +1,162 @@
 {
     "statusCode": 200,
     "success": true,
-    "message": "Subscription management stats retrieved successfully",
+    "message": "Advanced analytics stats retrieved successfully",
     "data": {
-        "totalProvider": {
-            "count": 7,
-            "percentageChange": 133.3
+        "summary": {
+            "totalBookings": {
+                "count": 17,
+                "percentageChange": 100
+            },
+            "grossRevenue": {
+                "amount": 3315.5,
+                "percentageChange": 100
+            },
+            "netRevenue": {
+                "amount": 2873.75,
+                "percentageChange": 100,
+                "commission": 441.75
+            },
+            "conversionRate": {
+                "rate": 13,
+                "percentageChange": 2.3
+            }
         },
-        "monthlyRevenue": {
-            "amount": 39057,
-            "percentageChange": 100
-        },
-        "premiumSubscribers": {
-            "count": 0,
-            "pricePerMonth": 16
-        },
-        "noSubscribers": {
-            "count": 7
-        },
-        "subscriberGrowth": {
+        "breakdownByService": [
+            {
+                "serviceType": "Home & Kitchen",
+                "bookings": 11,
+                "avgPrice": 81,
+                "grossRevenue": 895.5,
+                "commission": 111.75,
+                "netRevenue": 783.75
+            }
+        ],
+        "revenueTrends": {
             "months": [
+                "Oct",
+                "Nov",
+                "Dec",
                 "Jan",
                 "Feb",
-                "Mar",
-                "Apr",
-                "May",
-                "Jun"
+                "Mar"
             ],
-            "premium": [
-                900,
-                1050,
-                1150,
-                1200,
-                1250,
-                1284
-            ],
-            "noSubscription": [
-                150,
-                160,
-                170,
-                180,
-                185,
-                187
+            "categories": [
+                {
+                    "name": "Home & Kitchen",
+                    "data": [
+                        47027,
+                        52912,
+                        39358,
+                        27745,
+                        48977,
+                        53832
+                    ]
+                }
             ]
         },
-        "revenueDistribution": {
-            "premium": 20544,
-            "noSubscription": 18513
-        },
-        "activePlan": {
-            "name": "Photopia Premium",
-            "price": 16,
-            "features": [
-                "Priority in search results",
-                "Extended analytics",
-                "Remove platform branding",
-                "Advanced booking tools",
-                "Priority customer support"
+        "bookingStatusDistribution": [
+            {
+                "status": "Cancelled",
+                "count": 1,
+                "percentage": 6
+            },
+            {
+                "status": "Confirmed",
+                "count": 2,
+                "percentage": 12
+            },
+            {
+                "status": "Pending",
+                "count": 14,
+                "percentage": 82
+            }
+        ],
+        "profileToBookingConversion": {
+            "months": [
+                "Oct",
+                "Nov",
+                "Dec",
+                "Jan",
+                "Feb",
+                "Mar"
             ],
-            "subscribers": 0,
-            "monthlyRevenue": 20544
-        }
+            "bookings": [
+                4500,
+                5200,
+                5800,
+                6100,
+                6800,
+                7200
+            ],
+            "conversionRate": [
+                10.5,
+                11.2,
+                11.8,
+                12.4,
+                12.8,
+                13
+            ],
+            "profileViews": [
+                12000,
+                13500,
+                14200,
+                16000,
+                18200,
+                18500
+            ],
+            "totalProfileViews": 18500,
+            "totalBookings": 2405,
+            "averageConversionRate": 13
+        },
+        "topPerformingProviders": [
+            {
+                "rank": 1,
+                "name": "Sarah Johnson",
+                "bookings": 47,
+                "rating": 4.9,
+                "revenue": 12450,
+                "country": "Germany"
+            },
+            {
+                "rank": 2,
+                "name": "Michael Chen",
+                "bookings": 42,
+                "rating": 4.8,
+                "revenue": 11800,
+                "country": "France"
+            },
+            {
+                "rank": 3,
+                "name": "Emma Wilson",
+                "bookings": 38,
+                "rating": 4.9,
+                "revenue": 10540,
+                "country": "UK"
+            },
+            {
+                "rank": 4,
+                "name": "James Rodriguez",
+                "bookings": 35,
+                "rating": 4.7,
+                "revenue": 9870,
+                "country": "Spain"
+            },
+            {
+                "rank": 5,
+                "name": "Lisa Anderson",
+                "bookings": 32,
+                "rating": 4.8,
+                "revenue": 8920,
+                "country": "Italy"
+            }
+        ],
+        "highestGrowthServices": [
+            {
+                "name": "Home & Kitchen",
+                "bookings": 11,
+                "growthPercentage": 18
+            }
+        ]
     }
 }
