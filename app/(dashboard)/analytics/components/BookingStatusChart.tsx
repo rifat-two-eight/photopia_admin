@@ -17,6 +17,8 @@ export const BookingStatusChart: React.FC<BookingStatusChartProps> = ({ data = [
     percentage: item.percentage
   }));
 
+  // booking
+
   return (
     <Card className="border border-gray-100 shadow-sm">
       <CardHeader className="pb-2">
