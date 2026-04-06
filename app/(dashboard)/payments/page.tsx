@@ -7,7 +7,7 @@ import { PaymentsFilters } from './components/PaymentsFilters';
 import { TransactionsTable } from './components/TransactionsTable';
 import { PaymentsPagination } from './components/PaymentsPagination';
 import { PaymentDetail } from './components/PaymentDetail';
-import { RecentTransactionItem, PaymentStat, PaymentStatsApiResponse } from './types';
+import { RecentTransactionItem, PaymentStat, PaymentStatsApiResponse, TransactionsResponse } from './types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ApiResponse<T> {
@@ -20,26 +20,32 @@ interface ApiResponse<T> {
 const PaymentsPage = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<RecentTransactionItem | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
   const [apiData, setApiData] = useState<PaymentStatsApiResponse | null>(null);
   const [recentTransactions, setRecentTransactions] = useState<RecentTransactionItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
 
+  // Debounce search query
   useEffect(() => {
-    const fetchAllData = async () => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+
+  // Fetch Stats once
+  useEffect(() => {
+    const fetchStats = async () => {
       try {
         setLoading(true);
-        const [statsRes, txnsRes] = await Promise.all([
-          axiosInstance.get<ApiResponse<PaymentStatsApiResponse>>('/dashboard/payment-stats'),
-          axiosInstance.get<ApiResponse<RecentTransactionItem[]>>('/dashboard/recent-transactions')
-        ]);
-
+        const statsRes = await axiosInstance.get<ApiResponse<PaymentStatsApiResponse>>('/dashboard/payment-stats');
         if (statsRes.data.success) {
           setApiData(statsRes.data.data);
-        }
-        if (txnsRes.data.success) {
-          setRecentTransactions(txnsRes.data.data);
         }
       } catch (err: any) {
         setError(err.response?.data?.message || 'An error occurred while fetching payment data');
@@ -47,12 +53,34 @@ const PaymentsPage = () => {
         setLoading(false);
       }
     };
-
-    fetchAllData();
+    fetchStats();
   }, []);
 
+  // Fetch all transactions (no pagination)
+  useEffect(() => {
+    const fetchTransactions = async () => {
+        try {
+            setLoadingTransactions(true);
+            const params = new URLSearchParams({
+                searchTerm: debouncedSearch,
+                limit: '100' // Show a large number of transactions vertically
+            });
+            const txnsRes = await axiosInstance.get<ApiResponse<RecentTransactionItem[]>>(`/dashboard/recent-transactions?${params.toString()}`);
+            if (txnsRes.data.success) {
+                setRecentTransactions(txnsRes.data.data);
+            }
+        } catch (err: any) {
+            console.error("Failed to fetch transactions:", err);
+            setRecentTransactions([]);
+        } finally {
+            setLoadingTransactions(false);
+        }
+    };
+    fetchTransactions();
+  }, [debouncedSearch]);
+
   const stats: PaymentStat[] = useMemo(() => {
-    // ... same mapping logic as before ...
+    // ... stats mapping ...
     if (!apiData) return [
       { label: 'Total Revenue', value: '€0', change: '0%', subtext: 'from last month' },
       { label: 'Commissions Earned', value: '€0', change: '0%', subtext: 'average rate' },
@@ -163,18 +191,15 @@ const PaymentsPage = () => {
           onSearchChange={setSearchQuery}
         />
         
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
+          <span className="text-sm text-gray-500">{recentTransactions.length} items total</span>
+        </div>
+
         <TransactionsTable 
           transactions={recentTransactions} 
           onViewDetails={setSelectedTransaction}
-        />
-        
-        <PaymentsPagination 
-          currentPage={currentPage}
-          totalPages={3}
-          totalItems={24}
-          showingFrom={1}
-          showingTo={8}
-          onPageChange={setCurrentPage}
+          loading={loadingTransactions}
         />
       </div>
     </div>

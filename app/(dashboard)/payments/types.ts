@@ -1,4 +1,4 @@
-export type TransactionStatus = 'Completed' | 'Pending' | 'Failed';
+export type TransactionStatus = 'Completed' | 'Pending' | 'Failed' | 'Refunded';
 export type TransactionType = 'Payment' | 'Subscription' | 'Refund';
 
 export interface PaymentStat {
@@ -124,4 +124,16 @@ export interface TransactionDetailApiResponse {
         location: string;
         duration: string;
     };
+}
+export interface PaginationMeta {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+}
+
+export interface TransactionsResponse {
+    success: boolean;
+    data: RecentTransactionItem[];
+    meta: PaginationMeta;
 }

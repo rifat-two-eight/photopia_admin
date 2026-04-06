@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, CreditCard, User, Calendar, FileText, Download } from 'lucide-react';
+import { ArrowLeft, CreditCard, User, Calendar, FileText, Download, RotateCcw } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TransactionDetailApiResponse } from '../types';
 import axiosInstance from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
+import Swal from 'sweetalert2';
 
 interface PaymentDetailProps {
   transactionId: string;
@@ -22,27 +23,66 @@ interface ApiResponse<T> {
 export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transactionId, onBack }) => {
   const [data, setData] = useState<TransactionDetailApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isRefunding, setIsRefunding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDetails = async () => {
-      try {
-        setLoading(true);
-        const response = await axiosInstance.get<ApiResponse<TransactionDetailApiResponse>>(`/dashboard/recent-transactions/${transactionId}`);
-        if (response.data.success) {
-          setData(response.data.data);
-        } else {
-          setError(response.data.message || 'Failed to fetch transaction details');
-        }
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'An error occurred while fetching details');
-      } finally {
-        setLoading(false);
+  const fetchDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get<ApiResponse<TransactionDetailApiResponse>>(`/dashboard/recent-transactions/${transactionId}`);
+      if (response.data.success) {
+        setData(response.data.data);
+      } else {
+        setError(response.data.message || 'Failed to fetch transaction details');
       }
-    };
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'An error occurred while fetching details');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchDetails();
   }, [transactionId]);
+
+  const handleRefund = async () => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You are about to issue a full refund for this transaction. This action cannot be reversed!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#E7000B',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Yes, issue refund',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        setIsRefunding(true);
+        const response = await axiosInstance.post(`/payment/${transactionId}/refund`);
+        if (response.data.success) {
+          Swal.fire({
+            title: 'Refunded!',
+            text: response.data.message || 'The refund has been processed successfully.',
+            icon: 'success',
+            confirmButtonColor: '#1E1E1E'
+          });
+          fetchDetails(); // Refresh to show new status
+        }
+      } catch (err: any) {
+        Swal.fire({
+          title: 'Error!',
+          text: err.response?.data?.message || 'Failed to process refund. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#1E1E1E'
+        });
+      } finally {
+        setIsRefunding(false);
+      }
+    }
+  };
 
   const formatCurrency = (amt: number) => `€${amt.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`;
   const formatDate = (isoStr: string) => {
@@ -106,9 +146,12 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transactionId, onB
           <Card className="border-gray-200 shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-xl font-semibold text-gray-900">Transaction Details</CardTitle>
-              <Badge className={`border-0 text-sm font-normal px-3 py-1 ${transaction.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' :
-                  transaction.status === 'Pending' ? 'bg-amber-50 text-amber-700' : 'bg-red-50 text-red-700'
-                }`}>
+              <Badge className={`border-0 text-sm font-normal px-3 py-1 ${
+                transaction.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' :
+                transaction.status === 'Pending' ? 'bg-amber-50 text-amber-700' :
+                transaction.status === 'Refunded' ? 'bg-blue-50 text-blue-700' : 
+                'bg-red-50 text-red-700'
+              }`}>
                 {transaction.status}
               </Badge>
             </CardHeader>
@@ -222,8 +265,13 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transactionId, onB
               <Button variant="outline" className="w-full bg-white border-gray-200 text-gray-700">
                 View User Profile
               </Button>
-              <Button variant="outline" className="w-full bg-white border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300">
-                Issue Refund
+              <Button 
+                variant="outline" 
+                onClick={handleRefund}
+                disabled={isRefunding || transaction.status === 'Refunded'}
+                className="w-full bg-white border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 disabled:opacity-50"
+              >
+                {isRefunding ? 'Processing...' : 'Issue Refund'}
               </Button>
             </CardContent>
           </Card>

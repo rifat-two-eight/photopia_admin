@@ -16,27 +16,62 @@ export default function TopPerformingProviders({ providers = [] }: TopPerforming
     rank: p.rank,
     provider: p.name,
     country: p.country,
+    city: p.city,
+    category: p.category,
     revenue: `€${p.revenue.toLocaleString()}`,
     bookings: p.bookings,
     rating: p.rating,
   }));
 
-  const filters = ["All Providers", "By Country", "By City (demo)", "By Category (demo)"];
-  const uniqueCountries = Array.from(new Set(rankingData.map(d => d.country)));
+  const filters = ["All Providers", "By Country", "By City", "By Category"];
   const [activeFilter, setActiveFilter] = useState("By Country");
-  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [selectedFilterValue, setSelectedFilterValue] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const uniqueCountries = Array.from(new Set(rankingData.map(d => d.country)));
+  const uniqueCities = Array.from(new Set(rankingData.map(d => d.city)));
+  const uniqueCategories = Array.from(new Set(rankingData.map(d => d.category)));
+
+  const getDropdownOptions = () => {
+    switch (activeFilter) {
+      case "By Country": return uniqueCountries;
+      case "By City": return uniqueCities;
+      case "By Category": return uniqueCategories;
+      default: return [];
+    }
+  };
+
+  const getFilterPlaceholder = () => {
+    switch (activeFilter) {
+        case "By Country": return "All Countries";
+        case "By City": return "All Cities";
+        case "By Category": return "All Categories";
+        default: return "Select Filter";
+    }
+  };
+
   const filteredData = rankingData.filter((item) => {
-    if (selectedCountry && item.country !== selectedCountry) return false;
-    return true;
+    if (!selectedFilterValue) return true;
+    switch (activeFilter) {
+      case "By Country": return item.country === selectedFilterValue;
+      case "By City": return item.city === selectedFilterValue;
+      case "By Category": return item.category === selectedFilterValue;
+      default: return true;
+    }
   });
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
-  const selectCountry = (country: string | null) => {
-    setSelectedCountry(country);
+  const selectValue = (value: string | null) => {
+    setSelectedFilterValue(value);
     setIsDropdownOpen(false);
   };
+
+  const handleFilterChange = (filter: string) => {
+    setActiveFilter(filter);
+    setSelectedFilterValue(null); // Reset selection when filter type changes
+  };
+
+  const dropdownOptions = getDropdownOptions();
 
   return (
     <Card className="border-none shadow-sm ring-1 ring-gray-100">
@@ -49,13 +84,13 @@ export default function TopPerformingProviders({ providers = [] }: TopPerforming
         </div>
 
         <div className="flex flex-col md:flex-row md:items-center gap-4 mt-6">
-          <div className="flex bg-gray-100 p-1 rounded-lg">
+          <div className="flex bg-gray-100 p-1 rounded-lg overflow-x-auto no-scrollbar">
             {filters.map((filter) => (
               <button
                 key={filter}
-                onClick={() => setActiveFilter(filter)}
+                onClick={() => handleFilterChange(filter)}
                 className={cn(
-                  "px-4 py-2 text-sm font-medium rounded-md transition-all",
+                  "px-4 py-2 text-sm font-medium rounded-md transition-all whitespace-nowrap",
                   activeFilter === filter
                     ? "bg-gray-900 text-white shadow-sm"
                     : "text-gray-600 hover:text-gray-900 hover:bg-gray-200/50"
@@ -68,43 +103,45 @@ export default function TopPerformingProviders({ providers = [] }: TopPerforming
 
           <div className="flex-1"></div>
 
-          <div className="relative">
-            <button 
-                onClick={toggleDropdown}
-                className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
-            >
-                {selectedCountry || "All Countries"}
-                <ChevronDown className={cn("w-4 h-4 text-gray-400 transition-transform", isDropdownOpen && "rotate-180")} />
-            </button>
+          {activeFilter !== "All Providers" && (
+            <div className="relative">
+                <button 
+                    onClick={toggleDropdown}
+                    className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700 min-w-[140px]"
+                >
+                    {selectedFilterValue || getFilterPlaceholder()}
+                    <ChevronDown className={cn("w-4 h-4 text-gray-400 transition-transform ml-auto", isDropdownOpen && "rotate-180")} />
+                </button>
 
-            {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
-                    <div 
-                        className={cn(
-                            "px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center justify-between",
-                            !selectedCountry && "bg-blue-50 text-blue-600"
-                        )}
-                        onClick={() => selectCountry(null)}
-                    >
-                        All Countries
-                        {!selectedCountry && <Check className="w-4 h-4" />}
-                    </div>
-                    {uniqueCountries.map(country => (
+                {isDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 max-h-60 overflow-y-auto">
                         <div 
-                            key={country}
                             className={cn(
                                 "px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center justify-between",
-                                selectedCountry === country && "bg-blue-50 text-blue-600"
+                                !selectedFilterValue && "bg-blue-50 text-blue-600"
                             )}
-                            onClick={() => selectCountry(country)}
+                            onClick={() => selectValue(null)}
                         >
-                            {country}
-                            {selectedCountry === country && <Check className="w-4 h-4" />}
+                            {getFilterPlaceholder()}
+                            {!selectedFilterValue && <Check className="w-4 h-4" />}
                         </div>
-                    ))}
-                </div>
-            )}
-          </div>
+                        {dropdownOptions.map(option => (
+                            <div 
+                                key={option}
+                                className={cn(
+                                    "px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center justify-between",
+                                    selectedFilterValue === option && "bg-blue-50 text-blue-600"
+                                )}
+                                onClick={() => selectValue(option)}
+                            >
+                                {option}
+                                {selectedFilterValue === option && <Check className="w-4 h-4" />}
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+          )}
         </div>
       </CardHeader>
       <CardContent>

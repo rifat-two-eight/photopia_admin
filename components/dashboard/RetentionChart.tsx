@@ -1,7 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { RetentionEngagement } from "@/types/dashboard"
 
-const retentionData = [
+interface RetentionChartProps {
+  data?: RetentionEngagement
+}
+
+const defaultRetentionData = [
   { period: "Week 1", retention: 90, usage: 8 },
   { period: "Week 2", retention: 80, usage: 6 },
   { period: "Week 3", retention: 75, usage: 4 },
@@ -10,15 +15,25 @@ const retentionData = [
   { period: "D+90", retention: 58, usage: 1 },
 ]
 
-export default function RetentionChart() {
+export default function RetentionChart({ data }: RetentionChartProps) {
+  const isDemo = !data;
+  
+  const formattedData = data ? data.intervals.map((interval, index) => ({
+    period: interval,
+    retention: data.retentionRate[index],
+    usage: data.usageFrequency[index]
+  })) : defaultRetentionData;
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-medium text-gray-900">Retention & Engagement (demo)</CardTitle>
+        <CardTitle className="text-base font-medium text-gray-900">
+          Retention & Engagement {isDemo && "(demo)"}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>
-          <LineChart data={retentionData}>
+          <LineChart data={formattedData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="period" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} />

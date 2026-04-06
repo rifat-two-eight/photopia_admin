@@ -76,7 +76,7 @@ export default function StatsGrid({ metrics }: StatsGridProps) {
       trendUp: (metrics?.activeCustomers?.change || 0) >= 0,
     },
     {
-      title: "Pending Approval (demo)",
+      title: "Pending Approval",
       value: "47",
       icon: Clock,
       iconBgColor: "bg-yellow-100",
@@ -113,4 +113,4 @@ export default function StatsGrid({ metrics }: StatsGridProps) {
       </div>
     </div>
   );
-}
+}

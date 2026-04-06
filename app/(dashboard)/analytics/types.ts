@@ -66,6 +66,8 @@ export interface TopProviderItem {
     rating: number;
     revenue: number;
     country: string;
+    city: string;
+    category: string;
 }
 
 export interface GrowthServiceItem {

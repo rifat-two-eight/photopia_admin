@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ArrowLeft, AlertTriangle, AlertOctagon, MessageSquare, 
-  X, Ban, Archive, CheckCircle 
+  X, Ban, Archive, CheckCircle, RotateCcw 
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ModerationReportDetailResponse, Priority, Status } from '../types';
 import axiosInstance from '@/lib/axios';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 interface ReportDetailProps {
   reportId: string;
@@ -37,7 +38,13 @@ const getStatusBadgeStyle = (status: Status) => {
   switch (s) {
     case 'pending': return 'bg-gray-100 text-gray-700 hover:bg-gray-100 border-gray-200';
     case 'under_review': return 'bg-amber-50 text-amber-700 hover:bg-amber-50 border-amber-100';
-    case 'resolved': return 'bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-emerald-100';
+    case 'resolved':
+    case 'closed': return 'bg-emerald-50 text-emerald-700 hover:bg-emerald-50 border-emerald-100';
+    case 'blocked': return 'bg-red-100 text-red-800 hover:bg-red-100 border-red-200 font-bold';
+    case 'warning_issued': return 'bg-amber-100 text-amber-800 hover:bg-amber-100 border-amber-200';
+    case 'removed': return 'bg-orange-100 text-orange-800 hover:bg-orange-100 border-orange-200';
+    case 'archived': return 'bg-gray-200 text-gray-800 hover:bg-gray-200 border-gray-300';
+    case 'refunded': return 'bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200';
     default: return 'bg-gray-50 text-gray-700';
   }
 };
@@ -79,26 +86,46 @@ const formatDate = (isoStr: string) => {
 export const ReportDetail: React.FC<ReportDetailProps> = ({ reportId, onBack }) => {
   const [data, setData] = useState<ModerationReportDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDetails = async () => {
-      try {
-        setLoading(true);
-        const response = await axiosInstance.get<ApiResponse<ModerationReportDetailResponse>>(`/dashboard/moderation-reports/${reportId}`);
-        if (response.data.success) {
-          setData(response.data.data);
-        } else {
-          setError(response.data.message || "Failed to fetch report details");
-        }
-      } catch (err: any) {
-        setError(err.response?.data?.message || "An error occurred while fetching details");
-      } finally {
-        setLoading(false);
+  const fetchDetails = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get<ApiResponse<ModerationReportDetailResponse>>(`/dashboard/moderation-reports/${reportId}`);
+      if (response.data.success) {
+        setData(response.data.data);
+      } else {
+        setError(response.data.message || "Failed to fetch report details");
       }
-    };
+    } catch (err: any) {
+      setError(err.response?.data?.message || "An error occurred while fetching details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchDetails();
   }, [reportId]);
+
+  const handleAction = async (action: 'warning' | 'block' | 'remove' | 'archive' | 'refund' | 'close') => {
+    try {
+        setIsProcessing(true);
+        const response = await axiosInstance.post(`/dashboard/moderation-reports/${reportId}/action`, { action });
+        if (response.data.success) {
+            toast.success(`Action "${action}" completed successfully`);
+            // Update local state or refetch
+            fetchDetails();
+        } else {
+            toast.error(response.data.message || `Failed to perform action: ${action}`);
+        }
+    } catch (err: any) {
+        toast.error(err.response?.data?.message || `An error occurred during action: ${action}`);
+    } finally {
+        setIsProcessing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -203,26 +230,54 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ reportId, onBack }) 
             <CardContent className="p-6">
               <h3 className="text-base font-semibold text-gray-900 mb-4">Make Decision</h3>
               
-              <div className="grid grid-cols-4 gap-3 mb-4">
-                <Button className="bg-[#D08700] hover:bg-amber-600 text-white h-auto py-3 flex-col gap-1">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+                <Button 
+                    disabled={isProcessing}
+                    onClick={() => handleAction('warning')}
+                    className="bg-[#D08700] hover:bg-amber-600 text-white h-auto py-3 flex-col gap-1"
+                >
                   <AlertTriangle className="w-5 h-5 mb-1" />
-                  <span className="text-xs font-normal">Issue Warning</span>
+                  <span className="text-xs font-normal">Warning</span>
                 </Button>
-                <Button className="bg-[#F54900] hover:bg-orange-600 text-white h-auto py-3 flex-col gap-1">
+                <Button 
+                    disabled={isProcessing}
+                    onClick={() => handleAction('remove')}
+                    className="bg-[#F54900] hover:bg-orange-600 text-white h-auto py-3 flex-col gap-1"
+                >
                   <X className="w-5 h-5 mb-1" />
-                  <span className="text-xs font-normal">Remove Content</span>
+                  <span className="text-xs font-normal">Remove</span>
                 </Button>
-                <Button className="bg-[#E7000B] hover:bg-red-700 text-white h-auto py-3 flex-col gap-1">
-                  <AlertOctagon className="w-5 h-5 mb-1" />
-                  <span className="text-xs font-normal">Block User</span>
+                <Button 
+                    disabled={isProcessing}
+                    onClick={() => handleAction('block')}
+                    className="bg-[#E7000B] hover:bg-red-700 text-white h-auto py-3 flex-col gap-1"
+                >
+                  <Ban className="w-5 h-5 mb-1" />
+                  <span className="text-xs font-normal">Block</span>
                 </Button>
-                <Button className="bg-[#4B5563] hover:bg-gray-700 text-white h-auto py-3 flex-col gap-1">
+                <Button 
+                    disabled={isProcessing}
+                    onClick={() => handleAction('archive')}
+                    className="bg-[#4B5563] hover:bg-gray-700 text-white h-auto py-3 flex-col gap-1"
+                >
                   <Archive className="w-5 h-5 mb-1" />
                   <span className="text-xs font-normal">Archive</span>
                 </Button>
+                <Button 
+                    disabled={isProcessing}
+                    onClick={() => handleAction('refund')}
+                    className="bg-[#0070F3] hover:bg-blue-600 text-white h-auto py-3 flex-col gap-1"
+                >
+                  <RotateCcw className="w-5 h-5 mb-1" />
+                  <span className="text-xs font-normal">Refund</span>
+                </Button>
               </div>
 
-              <Button className="w-full bg-[#00A040] hover:bg-emerald-700 text-white shadow-sm">
+              <Button 
+                  disabled={isProcessing}
+                  onClick={() => handleAction('close')}
+                  className="w-full bg-[#00A040] hover:bg-emerald-700 text-white shadow-sm"
+              >
                 <CheckCircle className="w-4 h-4 mr-2" />
                 No Action Required - Close Report
               </Button>
@@ -234,7 +289,7 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ reportId, onBack }) 
             <CardContent className="p-6">
               <h3 className="text-base font-semibold text-gray-900 mb-6">Moderation Log</h3>
               <div className="relative pl-2 space-y-8 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-gray-200">
-                {moderationLog.map((log, index) => (
+                {moderationLog.map((log: any, index: number) => (
                   <div key={index} className="relative pl-6">
                     <div className="absolute left-0 top-1.5 w-5 h-5 bg-white border-2 border-blue-500 rounded-full z-10 box-content -ml-[3.5px]">
                       <div className="w-2 h-2 bg-blue-500 rounded-full m-1.5" />
@@ -289,7 +344,7 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ reportId, onBack }) 
             <CardContent className="p-6">
               <h3 className="text-base font-semibold text-gray-900 mb-4">Related Reports</h3>
               <div className="space-y-3">
-                {relatedReports.map((related, index) => (
+                {relatedReports.map((related: any, index: number) => (
                   <div key={index} className="border border-gray-100 rounded-lg p-3">
                     <div className="flex justify-between items-start mb-2">
                        <span className="text-sm font-medium text-gray-900">Similar content</span>

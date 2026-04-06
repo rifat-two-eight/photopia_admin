@@ -1,162 +1,120 @@
 {
     "statusCode": 200,
     "success": true,
-    "message": "Advanced analytics stats retrieved successfully",
+    "message": "Detailed dashboard stats retrieved successfully",
     "data": {
-        "summary": {
-            "totalBookings": {
-                "count": 17,
-                "percentageChange": 100
+        "mainMetrics": {
+            "gmv": {
+                "amount": 0,
+                "change": 0
             },
-            "grossRevenue": {
-                "amount": 3315.5,
-                "percentageChange": 100
+            "newBookings": {
+                "count": 0,
+                "change": 0
             },
             "netRevenue": {
-                "amount": 2873.75,
-                "percentageChange": 100,
-                "commission": 441.75
+                "amount": 0,
+                "change": 18.2
             },
             "conversionRate": {
-                "rate": 13,
-                "percentageChange": 2.3
-            }
-        },
-        "breakdownByService": [
-            {
-                "serviceType": "Home & Kitchen",
-                "bookings": 11,
-                "avgPrice": 81,
-                "grossRevenue": 895.5,
-                "commission": 111.75,
-                "netRevenue": 783.75
-            }
-        ],
-        "revenueTrends": {
-            "months": [
-                "Oct",
-                "Nov",
-                "Dec",
-                "Jan",
-                "Feb",
-                "Mar"
-            ],
-            "categories": [
-                {
-                    "name": "Home & Kitchen",
-                    "data": [
-                        47027,
-                        52912,
-                        39358,
-                        27745,
-                        48977,
-                        53832
-                    ]
-                }
-            ]
-        },
-        "bookingStatusDistribution": [
-            {
-                "status": "Cancelled",
+                "rate": 0,
+                "change": 0.4
+            },
+            "activeCreators": {
+                "count": 8,
+                "change": 23.1
+            },
+            "activeCustomers": {
+                "count": 20,
+                "change": 19.5
+            },
+            "supportTickets": {
                 "count": 1,
-                "percentage": 6
+                "change": 0
             },
-            {
-                "status": "Confirmed",
-                "count": 2,
-                "percentage": 12
-            },
-            {
-                "status": "Pending",
-                "count": 14,
-                "percentage": 82
+            "avgResponseTime": {
+                "hours": 2.3,
+                "change": -15.2
             }
-        ],
-        "profileToBookingConversion": {
-            "months": [
-                "Oct",
-                "Nov",
-                "Dec",
-                "Jan",
-                "Feb",
-                "Mar"
-            ],
-            "bookings": [
-                4500,
-                5200,
-                5800,
-                6100,
-                6800,
-                7200
-            ],
-            "conversionRate": [
-                10.5,
-                11.2,
-                11.8,
-                12.4,
-                12.8,
-                13
-            ],
-            "profileViews": [
-                12000,
-                13500,
-                14200,
-                16000,
-                18200,
-                18500
-            ],
-            "totalProfileViews": 18500,
-            "totalBookings": 2405,
-            "averageConversionRate": 13
         },
-        "topPerformingProviders": [
+        "gmvTrending": [],
+        "netRevenueTrending": [],
+        "geographicPerformance": [
             {
-                "rank": 1,
-                "name": "Sarah Johnson",
-                "bookings": 47,
-                "rating": 4.9,
-                "revenue": 12450,
-                "country": "Germany"
-            },
-            {
-                "rank": 2,
-                "name": "Michael Chen",
-                "bookings": 42,
-                "rating": 4.8,
-                "revenue": 11800,
-                "country": "France"
-            },
-            {
-                "rank": 3,
-                "name": "Emma Wilson",
-                "bookings": 38,
-                "rating": 4.9,
-                "revenue": 10540,
-                "country": "UK"
-            },
-            {
-                "rank": 4,
-                "name": "James Rodriguez",
-                "bookings": 35,
-                "rating": 4.7,
-                "revenue": 9870,
-                "country": "Spain"
-            },
-            {
-                "rank": 5,
-                "name": "Lisa Anderson",
-                "bookings": 32,
-                "rating": 4.8,
-                "revenue": 8920,
-                "country": "Italy"
+                "city": "Paris",
+                "bookings": 0,
+                "revenue": 0,
+                "growth": 0
             }
         ],
-        "highestGrowthServices": [
+        "marketplaceHealth": {
+            "creatorCustomerRatio": "1:2.5",
+            "matchRate": 0,
+            "avgProjectValue": 0,
+            "completionRate": 0
+        },
+        "countryRanking": [
             {
-                "name": "Home & Kitchen",
-                "bookings": 11,
-                "growthPercentage": 18
+                "country": "N/A",
+                "revenue": 0,
+                "growth": 0,
+                "rankCurrent": 1,
+                "rankPrev1": 1,
+                "rankPrev2": 1
             }
-        ]
+        ],
+        "acquisitionByChannel": [
+            {
+                "channel": "Social Media",
+                "users": 456,
+                "cac": 12.5
+            },
+            {
+                "channel": "SEO/Organic",
+                "users": 892,
+                "cac": 4.2
+            },
+            {
+                "channel": "Partnerships",
+                "users": 234,
+                "cac": 18.3
+            },
+            {
+                "channel": "Paid Ads",
+                "users": 378,
+                "cac": 22.8
+            },
+            {
+                "channel": "Referrals",
+                "users": 567,
+                "cac": 6.7
+            }
+        ],
+        "retentionEngagement": {
+            "intervals": [
+                "Week 1",
+                "Week 2",
+                "Week 3",
+                "Week 4",
+                "D+30",
+                "D+90"
+            ],
+            "retentionRate": [
+                92,
+                80,
+                75,
+                70,
+                65,
+                58
+            ],
+            "usageFrequency": [
+                8,
+                6,
+                4,
+                3,
+                2,
+                1
+            ]
+        }
     }
 }

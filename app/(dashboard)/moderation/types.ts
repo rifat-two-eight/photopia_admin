@@ -1,5 +1,5 @@
 export type Priority = 'High' | 'Medium' | 'Low' | 'low' | 'medium' | 'high';
-export type Status = 'Pending' | 'Under Review' | 'Resolved' | 'pending' | 'under_review' | 'resolved';
+export type Status = 'Pending' | 'Under Review' | 'Resolved' | 'pending' | 'under_review' | 'resolved' | 'blocked' | 'warning_issued' | 'removed' | 'archived' | 'refunded' | 'closed';
 
 export interface ModerationReportItem {
     id: string;

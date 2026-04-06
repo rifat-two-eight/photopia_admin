@@ -45,6 +45,18 @@ export interface CountryRankingItem {
     rankPrev2: number;
 }
 
+export interface AcquisitionChannelItem {
+    channel: string;
+    users: number;
+    cac: number;
+}
+
+export interface RetentionEngagement {
+    intervals: string[];
+    retentionRate: number[];
+    usageFrequency: number[];
+}
+
 export interface DetailedDashboardStats {
     mainMetrics: MainMetrics;
     gmvTrending: TrendingItem[];
@@ -52,6 +64,8 @@ export interface DetailedDashboardStats {
     geographicPerformance: GeographicPerformanceItem[];
     marketplaceHealth: MarketplaceHealth;
     countryRanking: CountryRankingItem[];
+    acquisitionByChannel: AcquisitionChannelItem[];
+    retentionEngagement: RetentionEngagement;
 }
 
 export interface ApiResponse<T> {

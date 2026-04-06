@@ -111,8 +111,8 @@ export default function DashboardPage() {
 
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <AcquisitionChannel />
-        <RetentionChart />
+        <AcquisitionChannel data={data?.acquisitionByChannel} />
+        <RetentionChart data={data?.retentionEngagement} />
       </div>
 
       {/* Geographic Performance */}

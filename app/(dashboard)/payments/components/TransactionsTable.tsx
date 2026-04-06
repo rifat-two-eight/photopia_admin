@@ -18,6 +18,7 @@ const getStatusBadgeStyle = (status: TransactionStatus) => {
     case 'Completed': return 'bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-50';
     case 'Pending': return 'bg-amber-50 text-amber-700 border-amber-100 hover:bg-amber-50';
     case 'Failed': return 'bg-red-50 text-red-700 border-red-100 hover:bg-red-50';
+    case 'Refunded': return 'bg-blue-50 text-blue-700 border-blue-100 hover:bg-blue-50';
     default: return '';
   }
 };
@@ -31,7 +32,7 @@ const getTypeStyle = (type: RecentTransactionItem['type']) => {
   }
 };
 
-export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactions, onViewDetails }) => {
+export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactions, onViewDetails, loading }) => {
   const formatCurrency = (amt: number) => `€${amt.toLocaleString('de-DE', { minimumFractionDigits: 2 })}`;
   const formatDate = (isoStr: string) => {
     try {
@@ -81,54 +82,71 @@ export const TransactionsTable: React.FC<TransactionsTableProps> = ({ transactio
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {transactions.map((txn) => (
-                <tr key={txn.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 h-16 text-sm font-medium text-gray-900">
-                    {txn.transactionId}
-                  </td>
-                  <td className="px-6 h-16 text-sm text-gray-900">
-                    {txn.user.name}
-                  </td>
-                  <td className="px-6 h-16">
-                    <Badge variant="secondary" className={`font-medium border-0 ${getTypeStyle(txn.type)}`}>
-                      {txn.type}
-                    </Badge>
-                  </td>
-                  <td className="px-6 h-16 text-sm font-medium text-gray-900">
-                    {formatCurrency(txn.amount)}
-                  </td>
-                  <td className={`px-6 h-16 text-sm font-medium ${
-                    txn.commission < 0 ? 'text-red-600' : 'text-emerald-600'
-                  }`}>
-                    {formatCurrency(txn.commission)}
-                  </td>
-                  <td className="px-6 h-16 text-sm text-gray-500">
-                    {formatDate(txn.date)}
-                  </td>
-                  <td className="px-6 h-16">
-                    <Badge variant="secondary" className={`font-normal ${getStatusBadgeStyle(txn.status)}`}>
-                      {txn.status}
-                    </Badge>
-                  </td>
-                  <td className="px-6 h-16 text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onViewDetails(txn)}
-                      className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      title="View Details"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-              {transactions.length === 0 && (
-                <tr>
-                  <td colSpan={8} className="px-6 py-10 text-center text-gray-500">
-                    No transactions found.
-                  </td>
-                </tr>
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <tr key={`skeleton-${i}`}>
+                    <td className="px-6 h-16"><Skeleton className="h-4 w-24" /></td>
+                    <td className="px-6 h-16"><Skeleton className="h-4 w-32" /></td>
+                    <td className="px-6 h-16"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                    <td className="px-6 h-16"><Skeleton className="h-4 w-16" /></td>
+                    <td className="px-6 h-16"><Skeleton className="h-4 w-16" /></td>
+                    <td className="px-6 h-16"><Skeleton className="h-4 w-28" /></td>
+                    <td className="px-6 h-16"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                    <td className="px-6 h-16 text-right"><Skeleton className="h-8 w-8 rounded-md float-right" /></td>
+                  </tr>
+                ))
+              ) : (
+                <>
+                  {transactions.map((txn) => (
+                    <tr key={txn.id} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 h-16 text-sm font-medium text-gray-900">
+                        {txn.transactionId}
+                      </td>
+                      <td className="px-6 h-16 text-sm text-gray-900">
+                        {txn.user.name}
+                      </td>
+                      <td className="px-6 h-16">
+                        <Badge variant="secondary" className={`font-medium border-0 ${getTypeStyle(txn.type)}`}>
+                          {txn.type}
+                        </Badge>
+                      </td>
+                      <td className="px-6 h-16 text-sm font-medium text-gray-900">
+                        {formatCurrency(txn.amount)}
+                      </td>
+                      <td className={`px-6 h-16 text-sm font-medium ${
+                        txn.commission < 0 ? 'text-red-600' : 'text-emerald-600'
+                      }`}>
+                        {formatCurrency(txn.commission)}
+                      </td>
+                      <td className="px-6 h-16 text-sm text-gray-500">
+                        {formatDate(txn.date)}
+                      </td>
+                      <td className="px-6 h-16">
+                        <Badge variant="secondary" className={`font-normal ${getStatusBadgeStyle(txn.status)}`}>
+                          {txn.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 h-16 text-right">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onViewDetails(txn)}
+                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          title="View Details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                  {transactions.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="px-6 py-10 text-center text-gray-500">
+                        No transactions found.
+                      </td>
+                    </tr>
+                  )}
+                </>
               )}
             </tbody>
           </table>
