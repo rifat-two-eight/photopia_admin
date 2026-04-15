@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   LayoutDashboard,
   Users,
+  Layers,
   CreditCard,
   MessageSquare,
   Crown,
@@ -24,6 +25,7 @@ import {
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Users, label: "User Management", href: "/users" },
+  { icon: Layers, label: "Category Management", href: "/categories" },
   { icon: CreditCard, label: "Payments & Commissions", href: "/payments" },
   { icon: MessageSquare, label: "Content Moderation", href: "/moderation" },
   { icon: Crown, label: "Subscriptions", href: "/subscriptions" },
@@ -44,18 +46,16 @@ export default function DashboardLayout({
   const [userName, setUserName] = useState("Admin");
 
   // Authentication check
-  useState(() => {
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
-      const name = localStorage.getItem("userName");
-      if (!token) {
-        router.push("/login");
-      }
-      if (name) {
-        setUserName(name);
-      }
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const name = localStorage.getItem("userName");
+    if (!token) {
+      router.push("/login");
     }
-  });
+    if (name) {
+      setUserName(name);
+    }
+  }, [router]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
