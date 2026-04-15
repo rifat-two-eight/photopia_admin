@@ -22,6 +22,8 @@ import {
   X,
 } from "lucide-react";
 
+import { SocketProvider, useSocket } from "@/context/SocketContext";
+
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Users, label: "User Management", href: "/users" },
@@ -34,21 +36,17 @@ const menuItems = [
   { icon: Bell, label: "Notifications", href: "/notifications" },
 ];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
   const [userName, setUserName] = useState("Admin");
+  const { unreadNotifications } = useSocket();
 
   // Authentication check
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const name = localStorage.getItem("userName");
+    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+    const name = typeof window !== 'undefined' ? localStorage.getItem("userName") : null;
     if (!token) {
       router.push("/login");
     }
@@ -96,19 +94,25 @@ export default function DashboardLayout({
               {menuItems.map((item) => {
                 const isActive = pathname === item.href;
                 const Icon = item.icon;
+                const isNotifications = item.href === "/notifications";
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsSidebarOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${isActive
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all relative ${isActive
                       ? "bg-black text-white"
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                       }`}
                   >
                     <Icon className="w-5 h-5" />
                     {item.label}
+                    {isNotifications && unreadNotifications > 0 && (
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                        {unreadNotifications > 99 ? '99+' : unreadNotifications}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
@@ -165,5 +169,17 @@ export default function DashboardLayout({
         </main>
       </div>
     </div>
+  );
+}
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <SocketProvider>
+      <DashboardContent>{children}</DashboardContent>
+    </SocketProvider>
   );
 }

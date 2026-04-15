@@ -16,7 +16,7 @@ import { CategoryStats } from './components/CategoryStats';
 import { ThemeTabs } from './components/ThemeTabs';
 import { CategoryTable } from './components/CategoryTable';
 import { CategoryPagination } from './components/CategoryPagination';
-import { Category, ThemeOption, CategoryResponse } from './types';
+import { Category, ThemeOption, CategoryResponse, CategoryStatsResponse } from './types';
 
 const CategoryManagement = () => {
   const [selectedTheme, setSelectedTheme] = useState('ALL');
@@ -34,8 +34,7 @@ const CategoryManagement = () => {
   const [stats, setStats] = useState([
     { label: 'Total Themes', value: '3' },
     { label: 'Total Categories', value: '...' },
-    { label: 'Total Subcategories', value: '...' },
-    { label: 'Active Items', value: '...', highlight: true }
+    { label: 'Total Subcategories', value: '...' }
   ]);
 
   const themes: ThemeOption[] = [
@@ -48,10 +47,26 @@ const CategoryManagement = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-      setCurrentPage(1); // Reset to first page on new search
+      setCurrentPage(1); 
     }, 500);
     return () => clearTimeout(handler);
   }, [searchQuery]);
+
+  const fetchCategoryStats = async () => {
+    try {
+      const response = await axiosInstance.get<CategoryStatsResponse>('/dashboard/category-stats');
+      if (response.data.success) {
+        const { totalCategories, totalSubCategories } = response.data.data;
+        setStats([
+          { label: 'Total Themes', value: '3' },
+          { label: 'Total Categories', value: totalCategories.toLocaleString() },
+          { label: 'Total Subcategories', value: totalSubCategories.toLocaleString() }
+        ]);
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch statistics:", error);
+    }
+  };
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -68,13 +83,9 @@ const CategoryManagement = () => {
       
       const response = await axiosInstance.get<CategoryResponse>('/category', { params });
       if (response.data.success) {
-        const list = response.data.data.data;
-        const meta = response.data.data.meta;
-        
-        setCategories(Array.isArray(list) ? list : []);
-        setTotalPages(meta.totalPages || 1);
-        setTotalItems(meta.total || 0);
-        updateStats(list);
+        setCategories(Array.isArray(response.data.data.data) ? response.data.data.data : []);
+        setTotalPages(response.data.data.meta.totalPages || 1);
+        setTotalItems(response.data.data.meta.total || 0);
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to fetch categories");
@@ -84,6 +95,7 @@ const CategoryManagement = () => {
   }, [selectedTheme, currentPage, debouncedSearch]);
 
   useEffect(() => {
+    fetchCategoryStats();
     fetchCategories();
   }, [fetchCategories]);
 
@@ -101,17 +113,6 @@ const CategoryManagement = () => {
     } catch (error: any) {
       toast.error("Failed to fetch subcategories");
     }
-  };
-
-  const updateStats = (cats: Category[]) => {
-    // In a real app, this might come from a dedicated stats endpoint
-    const activeCount = cats.filter(c => c.isActive).length;
-    setStats([
-      { label: 'Total Themes', value: '3' },
-      { label: 'Total Categories', value: totalItems.toLocaleString() },
-      { label: 'Total Subcategories', value: '...' }, 
-      { label: 'Active Items', value: activeCount.toString(), highlight: true }
-    ]);
   };
 
   const handleAddCategory = async () => {
@@ -153,6 +154,7 @@ const CategoryManagement = () => {
         if (response.data.success) {
           toast.success("Category added successfully");
           fetchCategories();
+          fetchCategoryStats();
         }
       } catch (error: any) {
         toast.error(error.response?.data?.message || "Failed to add category");
@@ -185,6 +187,7 @@ const CategoryManagement = () => {
         if (response.data.success) {
           toast.success("Subcategory added successfully");
           fetchSubcategories(parent._id);
+          fetchCategoryStats();
         }
       } catch (error: any) {
         toast.error(error.response?.data?.message || "Failed to add subcategory");
@@ -237,6 +240,7 @@ const CategoryManagement = () => {
         if (response.data.success) {
           toast.success("Deleted successfully");
           fetchCategories();
+          fetchCategoryStats();
           // Also clear from subcategories state if it was a subcategory
           Object.keys(subcategories).forEach(parentId => {
             if (subcategories[parentId].some(s => s._id === id)) {
@@ -290,7 +294,7 @@ const CategoryManagement = () => {
             selectedTheme={selectedTheme} 
             onThemeChange={(theme) => {
               setSelectedTheme(theme);
-              setCurrentPage(1); // Reset page on theme change
+              setCurrentPage(1); 
             }} 
             themes={themes} 
           />

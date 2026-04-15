@@ -6,12 +6,49 @@ import { Chat, Message, ChatResponse, MessageResponse } from './types';
 import axiosInstance from '@/lib/axios';
 import { toast } from 'sonner';
 
+import { useSocket } from '@/context/SocketContext';
+
 const MessagesPage = () => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [chats, setChats] = useState<Chat[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoadingChats, setIsLoadingChats] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const { socket, userId } = useSocket();
+
+  useEffect(() => {
+    if (!socket || !userId) return;
+
+    // Listen for chat list updates
+    const handleUpdateChatList = () => {
+      fetchChats();
+    };
+
+    socket.on(`updateChatList::${userId}`, handleUpdateChatList);
+
+    return () => {
+      socket.off(`updateChatList::${userId}`, handleUpdateChatList);
+    };
+  }, [socket, userId]);
+
+  useEffect(() => {
+    if (!socket || !activeId) return;
+
+    // Listen for new messages in active chat
+    const handleNewMessage = (newMessage: Message) => {
+      setMessages((prev) => {
+        // Prevent duplicates
+        if (prev.some(m => m._id === newMessage._id)) return prev;
+        return [...prev, newMessage];
+      });
+    };
+
+    socket.on(`getMessage::${activeId}`, handleNewMessage);
+
+    return () => {
+      socket.off(`getMessage::${activeId}`, handleNewMessage);
+    };
+  }, [socket, activeId]);
 
   useEffect(() => {
     fetchChats();
@@ -55,14 +92,19 @@ const MessagesPage = () => {
   };
 
   const handleMessageSent = (newMessage: Message) => {
-    setMessages((prev) => [...prev, newMessage]);
-    // Optionally update the chat's updatedAt and unreadCount in the chats list
+    setMessages((prev) => {
+      // Prevent duplicates
+      if (prev.some(m => m._id === newMessage._id)) return prev;
+      return [...prev, newMessage];
+    });
+
+    // Update the chat's updatedAt and set it as last message in the list
     setChats((prev) =>
       prev.map((chat) =>
         chat._id === newMessage.chatId
-          ? { ...chat, updatedAt: newMessage.createdAt }
+          ? { ...chat, updatedAt: newMessage.createdAt, lastMessage: newMessage }
           : chat
-      )
+      ).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     );
   };
 

@@ -1,249 +1,103 @@
-{
-    "statusCode": 200,
-    "success": true,
-    "message": "Categories retrieved successfully",
+# Real-time Notification & Messaging Guide (Socket.io)
+ 
+This document provides instructions on how to integrate and use real-time features for Notifications and Messaging using Socket.io in the Photopia project.
+ 
+## 1. Socket.io Configuration
+ 
+- **Server-side Initialization**: Sockets are initialized in `src/server.ts` and managed via `src/helpers/socketHelper.ts`.
+- **Global Access**: The `io` instance is available globally via `global.io`.
+ 
+## 2. Notification Real-time Integration
+ 
+### Server-side Implementation
+Notifications are sent automatically when a new notification is created in `src/app/modules/notification/notification.service.ts`.
+ 
+- **Event Name**: `notification`
+- **Room**: User's ID (`userId`)
+- **Payload Structure**:
+  ```json
+  {
+    "type": "NEW_NOTIFICATION",
     "data": {
-        "meta": {
-            "page": 1,
-            "limit": 10,
-            "total": 270,
-            "totalPages": 27
-        },
-        "data": [
-            {
-                "_id": "69e00009aa6d7158dec5d9f2",
-                "name": "Oleg Hooper",
-                "theme": "PHOTOGRAPHY",
-                "type": "category",
-                "isPopular": false,
-                "isTrending": false,
-                "isActive": true,
-                "createdAt": "2026-04-15T21:15:53.589Z",
-                "updatedAt": "2026-04-15T21:15:53.589Z",
-                "__v": 0,
-                "id": "69e00009aa6d7158dec5d9f2"
-            },
-            {
-                "_id": "69dfda48f6cff7834990ce3e",
-                "name": "Hologram",
-                "theme": "EDITING & POST-PRODUCTION",
-                "parent": {
-                    "_id": "69dfda48f6cff7834990ce2e",
-                    "name": "Emerging Formats",
-                    "theme": "EDITING & POST-PRODUCTION",
-                    "type": "category",
-                    "isPopular": false,
-                    "isTrending": false,
-                    "isActive": true,
-                    "createdAt": "2026-04-15T18:34:48.172Z",
-                    "updatedAt": "2026-04-15T18:34:48.172Z",
-                    "__v": 0,
-                    "id": "69dfda48f6cff7834990ce2e"
-                },
-                "type": "subcategory",
-                "isPopular": false,
-                "isTrending": false,
-                "isActive": true,
-                "createdAt": "2026-04-15T18:34:48.842Z",
-                "updatedAt": "2026-04-15T18:34:48.842Z",
-                "__v": 0,
-                "id": "69dfda48f6cff7834990ce3e"
-            },
-            {
-                "_id": "69dfda48f6cff7834990ce3c",
-                "name": "Metaverse content",
-                "theme": "EDITING & POST-PRODUCTION",
-                "parent": {
-                    "_id": "69dfda48f6cff7834990ce2e",
-                    "name": "Emerging Formats",
-                    "theme": "EDITING & POST-PRODUCTION",
-                    "type": "category",
-                    "isPopular": false,
-                    "isTrending": false,
-                    "isActive": true,
-                    "createdAt": "2026-04-15T18:34:48.172Z",
-                    "updatedAt": "2026-04-15T18:34:48.172Z",
-                    "__v": 0,
-                    "id": "69dfda48f6cff7834990ce2e"
-                },
-                "type": "subcategory",
-                "isPopular": false,
-                "isTrending": false,
-                "isActive": true,
-                "createdAt": "2026-04-15T18:34:48.758Z",
-                "updatedAt": "2026-04-15T18:34:48.758Z",
-                "__v": 0,
-                "id": "69dfda48f6cff7834990ce3c"
-            },
-            {
-                "_id": "69dfda48f6cff7834990ce3a",
-                "name": "Video LED wall",
-                "theme": "EDITING & POST-PRODUCTION",
-                "parent": {
-                    "_id": "69dfda48f6cff7834990ce2e",
-                    "name": "Emerging Formats",
-                    "theme": "EDITING & POST-PRODUCTION",
-                    "type": "category",
-                    "isPopular": false,
-                    "isTrending": false,
-                    "isActive": true,
-                    "createdAt": "2026-04-15T18:34:48.172Z",
-                    "updatedAt": "2026-04-15T18:34:48.172Z",
-                    "__v": 0,
-                    "id": "69dfda48f6cff7834990ce2e"
-                },
-                "type": "subcategory",
-                "isPopular": false,
-                "isTrending": false,
-                "isActive": true,
-                "createdAt": "2026-04-15T18:34:48.674Z",
-                "updatedAt": "2026-04-15T18:34:48.674Z",
-                "__v": 0,
-                "id": "69dfda48f6cff7834990ce3a"
-            },
-            {
-                "_id": "69dfda48f6cff7834990ce38",
-                "name": "Video for DOOH",
-                "theme": "EDITING & POST-PRODUCTION",
-                "parent": {
-                    "_id": "69dfda48f6cff7834990ce2e",
-                    "name": "Emerging Formats",
-                    "theme": "EDITING & POST-PRODUCTION",
-                    "type": "category",
-                    "isPopular": false,
-                    "isTrending": false,
-                    "isActive": true,
-                    "createdAt": "2026-04-15T18:34:48.172Z",
-                    "updatedAt": "2026-04-15T18:34:48.172Z",
-                    "__v": 0,
-                    "id": "69dfda48f6cff7834990ce2e"
-                },
-                "type": "subcategory",
-                "isPopular": false,
-                "isTrending": false,
-                "isActive": true,
-                "createdAt": "2026-04-15T18:34:48.590Z",
-                "updatedAt": "2026-04-15T18:34:48.590Z",
-                "__v": 0,
-                "id": "69dfda48f6cff7834990ce38"
-            },
-            {
-                "_id": "69dfda48f6cff7834990ce36",
-                "name": "Interactive content",
-                "theme": "EDITING & POST-PRODUCTION",
-                "parent": {
-                    "_id": "69dfda48f6cff7834990ce2e",
-                    "name": "Emerging Formats",
-                    "theme": "EDITING & POST-PRODUCTION",
-                    "type": "category",
-                    "isPopular": false,
-                    "isTrending": false,
-                    "isActive": true,
-                    "createdAt": "2026-04-15T18:34:48.172Z",
-                    "updatedAt": "2026-04-15T18:34:48.172Z",
-                    "__v": 0,
-                    "id": "69dfda48f6cff7834990ce2e"
-                },
-                "type": "subcategory",
-                "isPopular": false,
-                "isTrending": false,
-                "isActive": true,
-                "createdAt": "2026-04-15T18:34:48.505Z",
-                "updatedAt": "2026-04-15T18:34:48.505Z",
-                "__v": 0,
-                "id": "69dfda48f6cff7834990ce36"
-            },
-            {
-                "_id": "69dfda48f6cff7834990ce34",
-                "name": "Augmented Reality (AR)",
-                "theme": "EDITING & POST-PRODUCTION",
-                "parent": {
-                    "_id": "69dfda48f6cff7834990ce2e",
-                    "name": "Emerging Formats",
-                    "theme": "EDITING & POST-PRODUCTION",
-                    "type": "category",
-                    "isPopular": false,
-                    "isTrending": false,
-                    "isActive": true,
-                    "createdAt": "2026-04-15T18:34:48.172Z",
-                    "updatedAt": "2026-04-15T18:34:48.172Z",
-                    "__v": 0,
-                    "id": "69dfda48f6cff7834990ce2e"
-                },
-                "type": "subcategory",
-                "isPopular": false,
-                "isTrending": false,
-                "isActive": true,
-                "createdAt": "2026-04-15T18:34:48.423Z",
-                "updatedAt": "2026-04-15T18:34:48.423Z",
-                "__v": 0,
-                "id": "69dfda48f6cff7834990ce34"
-            },
-            {
-                "_id": "69dfda48f6cff7834990ce32",
-                "name": "Virtual Reality (VR)",
-                "theme": "EDITING & POST-PRODUCTION",
-                "parent": {
-                    "_id": "69dfda48f6cff7834990ce2e",
-                    "name": "Emerging Formats",
-                    "theme": "EDITING & POST-PRODUCTION",
-                    "type": "category",
-                    "isPopular": false,
-                    "isTrending": false,
-                    "isActive": true,
-                    "createdAt": "2026-04-15T18:34:48.172Z",
-                    "updatedAt": "2026-04-15T18:34:48.172Z",
-                    "__v": 0,
-                    "id": "69dfda48f6cff7834990ce2e"
-                },
-                "type": "subcategory",
-                "isPopular": false,
-                "isTrending": false,
-                "isActive": true,
-                "createdAt": "2026-04-15T18:34:48.340Z",
-                "updatedAt": "2026-04-15T18:34:48.340Z",
-                "__v": 0,
-                "id": "69dfda48f6cff7834990ce32"
-            },
-            {
-                "_id": "69dfda48f6cff7834990ce30",
-                "name": "360° video",
-                "theme": "EDITING & POST-PRODUCTION",
-                "parent": {
-                    "_id": "69dfda48f6cff7834990ce2e",
-                    "name": "Emerging Formats",
-                    "theme": "EDITING & POST-PRODUCTION",
-                    "type": "category",
-                    "isPopular": false,
-                    "isTrending": false,
-                    "isActive": true,
-                    "createdAt": "2026-04-15T18:34:48.172Z",
-                    "updatedAt": "2026-04-15T18:34:48.172Z",
-                    "__v": 0,
-                    "id": "69dfda48f6cff7834990ce2e"
-                },
-                "type": "subcategory",
-                "isPopular": false,
-                "isTrending": false,
-                "isActive": true,
-                "createdAt": "2026-04-15T18:34:48.256Z",
-                "updatedAt": "2026-04-15T18:34:48.256Z",
-                "__v": 0,
-                "id": "69dfda48f6cff7834990ce30"
-            },
-            {
-                "_id": "69dfda48f6cff7834990ce2e",
-                "name": "Emerging Formats",
-                "theme": "EDITING & POST-PRODUCTION",
-                "type": "category",
-                "isPopular": false,
-                "isTrending": false,
-                "isActive": true,
-                "createdAt": "2026-04-15T18:34:48.172Z",
-                "updatedAt": "2026-04-15T18:34:48.172Z",
-                "__v": 0,
-                "id": "69dfda48f6cff7834990ce2e"
-            }
-        ]
+      "_id": "notification_id",
+      "userId": "user_id",
+      "title": "Notification Title",
+      "content": "Notification content...",
+      "type": "PAYMENT_SUCCESS",
+      "status": "UNREAD",
+      ...
     }
-}
+  }
+  ```
+ 
+### Client-side Implementation
+1. **Connect to Socket**:
+   ```javascript
+   const socket = io('YOUR_SERVER_URL');
+   ```
+2. **Join Notification Room**:
+   You MUST join the notification room using your User ID to receive private notifications.
+   ```javascript
+   socket.emit('join-notification', userId);
+   ```
+3. **Listen for Notifications**:
+   ```javascript
+   socket.on('notification', (payload) => {
+     if (payload.type === 'NEW_NOTIFICATION') {
+       console.log('New notification received:', payload.data);
+       // Update UI or show toast
+     }
+   });
+   ```
+ 
+---
+ 
+## 3. Messaging (Chat) Real-time Integration
+ 
+Messaging uses dynamic event names based on Chat IDs and User IDs to ensure efficient updates.
+ 
+### A. Sending/Receiving Messages
+When a message is sent via `src/app/modules/message/message.service.ts`, it emits to a specific chat room.
+ 
+- **Event Name**: `getMessage::${chatId}`
+- **Payload**: The newly created Message object.
+ 
+**Client-side Usage**:
+```javascript
+// Listen for new messages in a specific chat
+socket.on(`getMessage::${chatId}`, (newMessage) => {
+  console.log('New message in chat:', newMessage);
+  // Append to message list
+});
+```
+ 
+### B. Updating Chat List
+To keep the conversation list updated (last message, unread count, etc.), the server triggers an update event.
+ 
+- **Event Name**: `updateChatList::${userId}`
+- **Trigger**: Sent to both sender and receiver when a new message is created. Also sent to the sender when their message is marked as "seen".
+ 
+**Client-side Usage**:
+```javascript
+// Listen for chat list updates
+socket.on(`updateChatList::${userId}`, () => {
+  console.log('Chat list needs refreshing');
+  // Re-fetch chat list API
+});
+```
+ 
+## 4. Summary of Events
+ 
+| Feature | Event Name | Direction | Description |
+| :--- | :--- | :--- | :--- |
+| **General** | `join-notification` | Client -> Server | Join a private room using `userId` |
+| **Notification** | `notification` | Server -> Client | Receives new in-app notification |
+| **Chat** | `getMessage::${chatId}` | Server -> Client | Receives a new message for a specific chat |
+| **Chat** | `updateChatList::${userId}` | Server -> Client | Notifies user to refresh their conversation list |
+ 
+## 5. Connection Details
+- **Ping Timeout**: 60,000ms
+- **CORS**: Enabled for all origins (`*`)
+- **Default Port**: Same as the API server port.
+ 
+ 

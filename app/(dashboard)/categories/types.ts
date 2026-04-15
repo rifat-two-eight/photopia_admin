@@ -16,11 +16,26 @@ export interface Category {
   updatedAt: string;
 }
 
-export interface CategoryStats {
-  totalThemes: number;
+export interface DashboardCategoryStats {
   totalCategories: number;
-  totalSubcategories: number;
-  activeItems: number;
+  totalSubCategories: number;
+  categoriesByTheme: {
+    theme: string;
+    count: number;
+  }[];
+  popularCategories: {
+    id: string;
+    name: string;
+    serviceCount: number;
+    theme: string;
+  }[];
+}
+
+export interface CategoryStatsResponse {
+  statusCode: number;
+  success: boolean;
+  message: string;
+  data: DashboardCategoryStats;
 }
 
 export interface CategoryResponse {

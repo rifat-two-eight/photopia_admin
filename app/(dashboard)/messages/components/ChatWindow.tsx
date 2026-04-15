@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Chat, Message, SendMessageResponse } from '../types';
 import axiosInstance from '@/lib/axios';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 const getImageUrl = (path: string) => {
   if (!path) return '';
@@ -73,7 +74,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
         formData.append('text', newMessage);
       }
       if (selectedFile) {
-        formData.append('images-file', selectedFile);
+        formData.append('images', selectedFile);
       }
 
       const response = await axiosInstance.post<SendMessageResponse>('/message', formData, {
@@ -158,7 +159,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
                     >
                       {msg.image && (
                         <div className="mb-2">
-                          <img src={getImageUrl(msg.image)} alt="Sent image" className="rounded-lg max-w-full h-auto" />
+                          <Image
+                            src={getImageUrl(msg.image)}
+                            alt="Sent image"
+                            width={300}
+                            height={300}
+                            className="rounded-lg max-w-full h-auto object-cover max-h-[300px]"
+                            onError={(e) => {
+                              if (msg.image) {
+                                console.error('Image load failed:', getImageUrl(msg.image));
+                              }
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
                         </div>
                       )}
                       {msg.text}
