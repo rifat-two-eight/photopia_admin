@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  ChevronDown, 
-  ChevronRight, 
-  Edit2, 
-  Trash2, 
+import {
+  ChevronDown,
+  ChevronRight,
+  Edit2,
+  Trash2,
   Plus,
   Eye,
   EyeOff
@@ -34,6 +34,15 @@ export const CategoryTable = ({
 }: CategoryTableProps) => {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
+  React.useEffect(() => {
+    // Auto-fetch subcategories for any newly loaded category to get the count
+    categories.forEach(category => {
+      if (!subcategories[category._id]) {
+        onFetchSubcategories(category._id);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categories]);
   const toggleRow = (id: string) => {
     const newExpanded = new Set(expandedRows);
     if (newExpanded.has(id)) {
@@ -48,8 +57,8 @@ export const CategoryTable = ({
   };
 
   const getStatusBadgeClass = (isActive: boolean) => {
-    return isActive 
-      ? 'bg-green-100 text-green-700 hover:bg-green-100 border-green-200' 
+    return isActive
+      ? 'bg-green-100 text-green-700 hover:bg-green-100 border-green-200'
       : 'bg-gray-100 text-gray-700 hover:bg-gray-100 border-gray-200';
   };
 
@@ -83,7 +92,7 @@ export const CategoryTable = ({
                   <tr className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 h-16">
                       <div className="flex items-center gap-3">
-                        <button 
+                        <button
                           onClick={() => toggleRow(category._id)}
                           className="p-1 hover:bg-gray-100 rounded transition-colors"
                         >
@@ -98,12 +107,12 @@ export const CategoryTable = ({
                     </td>
                     <td className="px-6 h-16">
                       <Badge variant="secondary" className="font-normal bg-gray-100 text-gray-700 hover:bg-gray-100 border-gray-200">
-                        {category.theme}
+                        {category.theme || 'No theme'}
                       </Badge>
                     </td>
                     <td className="px-6 h-16">
-                      <Badge 
-                        variant="secondary" 
+                      <Badge
+                        variant="secondary"
                         onClick={() => onToggleStatus(category._id)}
                         className={`font-normal cursor-pointer transition-colors ${getStatusBadgeClass(category.isActive)}`}
                       >
@@ -111,7 +120,9 @@ export const CategoryTable = ({
                       </Badge>
                     </td>
                     <td className="px-6 h-16 text-sm text-gray-500">
-                      {subcategories[category._id]?.length || 0} items
+                      {subcategories[category._id] !== undefined
+                        ? `${subcategories[category._id].length} items`
+                        : <span className="animate-pulse">Loading...</span>}
                     </td>
                     <td className="px-6 h-16">
                       <div className="flex items-center gap-1">
@@ -145,7 +156,7 @@ export const CategoryTable = ({
                       </div>
                     </td>
                   </tr>
-                  
+
                   {/* Expanded Subcategories */}
                   {expandedRows.has(category._id) && (
                     <tr className="bg-gray-50/30">
@@ -154,7 +165,7 @@ export const CategoryTable = ({
                           <div className="flex items-center justify-between text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                             <span>Subcategories for {category.name}</span>
                           </div>
-                          
+
                           {!subcategories[category._id] ? (
                             <div className="text-center py-4 text-xs text-gray-400 animate-pulse font-medium">Loading subcategories...</div>
                           ) : subcategories[category._id].length === 0 ? (
@@ -162,7 +173,7 @@ export const CategoryTable = ({
                           ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                               {subcategories[category._id].map((sub) => (
-                                <div 
+                                <div
                                   key={sub._id}
                                   className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all group/sub"
                                 >
@@ -171,13 +182,13 @@ export const CategoryTable = ({
                                     <span className="text-sm font-medium text-gray-700">{sub.name}</span>
                                   </div>
                                   <div className="flex items-center gap-1 opacity-0 group-hover/sub:opacity-100 transition-opacity">
-                                    <button 
+                                    <button
                                       onClick={() => onEdit(sub)}
                                       className="p-1.5 text-gray-400 hover:text-blue-600 rounded hover:bg-blue-50 transition-colors"
                                     >
                                       <Edit2 className="w-3.5 h-3.5" />
                                     </button>
-                                    <button 
+                                    <button
                                       onClick={() => onDelete(sub._id)}
                                       className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-red-50 transition-colors"
                                     >

@@ -4,9 +4,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axiosInstance from '@/lib/axios';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
-import { 
-  Plus, 
-  Search, 
+import {
+  Plus,
+  Search,
   Camera,
   Video,
   Edit3
@@ -25,7 +25,7 @@ const CategoryManagement = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Record<string, Category[]>>({});
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -47,7 +47,7 @@ const CategoryManagement = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
-      setCurrentPage(1); 
+      setCurrentPage(1);
     }, 500);
     return () => clearTimeout(handler);
   }, [searchQuery]);
@@ -71,8 +71,8 @@ const CategoryManagement = () => {
   const fetchCategories = useCallback(async () => {
     try {
       setIsLoading(true);
-      const params: any = { 
-        type: 'category', 
+      const params: any = {
+        type: 'category',
         limit: 10,
         page: currentPage,
         searchTerm: debouncedSearch
@@ -80,7 +80,7 @@ const CategoryManagement = () => {
       if (selectedTheme !== 'ALL') {
         params.theme = selectedTheme;
       }
-      
+
       const response = await axiosInstance.get<CategoryResponse>('/category', { params });
       if (response.data.success) {
         setCategories(Array.isArray(response.data.data.data) ? response.data.data.data : []);
@@ -276,7 +276,7 @@ const CategoryManagement = () => {
             Organize themes, categories, and subcategories for the platform
           </p>
         </div>
-        <button 
+        <button
           onClick={handleAddCategory}
           className="flex items-center justify-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-black/90 transition-all shadow-sm active:scale-95"
         >
@@ -290,18 +290,18 @@ const CategoryManagement = () => {
       <div className="space-y-6 pt-4">
         {/* Navigation & Search */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-gray-100 pb-2">
-          <ThemeTabs 
-            selectedTheme={selectedTheme} 
+          <ThemeTabs
+            selectedTheme={selectedTheme}
             onThemeChange={(theme) => {
               setSelectedTheme(theme);
-              setCurrentPage(1); 
-            }} 
-            themes={themes} 
+              setCurrentPage(1);
+            }}
+            themes={themes}
           />
-          
+
           <div className="relative w-full lg:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
+            <input
               type="text"
               placeholder="Search categories..."
               value={searchQuery}
@@ -314,12 +314,12 @@ const CategoryManagement = () => {
         {/* Content Table */}
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20 pointer-events-none">
-             <div className="w-8 h-8 border-4 border-black/10 border-t-black rounded-full animate-spin mb-4" />
-             <p className="text-gray-400 text-sm animate-pulse">Loading categories...</p>
+            <div className="w-8 h-8 border-4 border-black/10 border-t-black rounded-full animate-spin mb-4" />
+            <p className="text-gray-400 text-sm animate-pulse">Loading categories...</p>
           </div>
         ) : (
           <>
-            <CategoryTable 
+            <CategoryTable
               categories={categories}
               subcategories={subcategories}
               onEdit={handleEdit}
@@ -328,7 +328,7 @@ const CategoryManagement = () => {
               onFetchSubcategories={fetchSubcategories}
               onAddSubcategory={handleAddSubcategory}
             />
-            
+
             <CategoryPagination
               currentPage={currentPage}
               totalPages={totalPages}
