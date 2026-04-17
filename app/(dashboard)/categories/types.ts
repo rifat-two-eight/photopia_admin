@@ -1,4 +1,5 @@
 export interface Category {
+  themeName: string;
   _id: string;
   name: string;
   theme: string;
