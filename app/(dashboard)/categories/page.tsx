@@ -40,7 +40,7 @@ const CategoryManagement = () => {
   const themes: ThemeOption[] = [
     { id: 'PHOTOGRAPHY', name: 'Photography', icon: Camera },
     { id: 'VIDEOGRAPHY', name: 'Videography', icon: Video },
-    { id: 'EDITING & POST-PRODUCTION', name: 'Post-Production', icon: Edit3 },
+    { id: 'EDITING & POST-PRODUCTION', name: 'Editing & Post Production', icon: Edit3 },
   ];
 
   // Debounce search
@@ -125,7 +125,7 @@ const CategoryManagement = () => {
             <select id="swal-theme" class="w-full p-2 border rounded-md">
               <option value="PHOTOGRAPHY">Photography</option>
               <option value="VIDEOGRAPHY">Videography</option>
-              <option value="EDITING & POST-PRODUCTION">Post-Production</option>
+              <option value="EDITING & POST-PRODUCTION">Editing & Post Production</option>
             </select>
           </div>
           <div>
