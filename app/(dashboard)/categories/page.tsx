@@ -80,10 +80,15 @@ const CategoryManagement = () => {
       if (selectedTheme !== 'ALL') {
         params.theme = selectedTheme;
       }
+      params.sortBy = 'createdAt';
 
       const response = await axiosInstance.get<CategoryResponse>('/category', { params });
       if (response.data.success) {
-        setCategories(Array.isArray(response.data.data.data) ? response.data.data.data : []);
+        const rawData = Array.isArray(response.data.data.data) ? response.data.data.data : [];
+        const sortedData = [...rawData].sort((a, b) => 
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
+        setCategories(sortedData);
         setTotalPages(response.data.data.meta.totalPages || 1);
         setTotalItems(response.data.data.meta.total || 0);
       }
@@ -105,9 +110,13 @@ const CategoryManagement = () => {
         params: { parent: categoryId, type: 'subcategory', limit: 100 }
       });
       if (response.data.success) {
+        const rawData = Array.isArray(response.data.data.data) ? response.data.data.data : [];
+        const sortedData = [...rawData].sort((a, b) => 
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        );
         setSubcategories(prev => ({
           ...prev,
-          [categoryId]: Array.isArray(response.data.data.data) ? response.data.data.data : []
+          [categoryId]: sortedData
         }));
       }
     } catch (error: any) {
