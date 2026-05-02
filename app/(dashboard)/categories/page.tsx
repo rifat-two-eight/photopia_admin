@@ -85,7 +85,7 @@ const CategoryManagement = () => {
       const response = await axiosInstance.get<CategoryResponse>('/category', { params });
       if (response.data.success) {
         const rawData = Array.isArray(response.data.data.data) ? response.data.data.data : [];
-        const sortedData = [...rawData].sort((a, b) => 
+        const sortedData = [...rawData].sort((a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
         setCategories(sortedData);
@@ -111,7 +111,7 @@ const CategoryManagement = () => {
       });
       if (response.data.success) {
         const rawData = Array.isArray(response.data.data.data) ? response.data.data.data : [];
-        const sortedData = [...rawData].sort((a, b) => 
+        const sortedData = [...rawData].sort((a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
         setSubcategories(prev => ({
