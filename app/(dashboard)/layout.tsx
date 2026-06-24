@@ -20,6 +20,7 @@ import {
   LogOut,
   Menu,
   X,
+  Lightbulb,
 } from "lucide-react";
 
 import { SocketProvider, useSocket } from "@/context/SocketContext";
@@ -28,6 +29,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Users, label: "User Management", href: "/users" },
   { icon: Layers, label: "Category Management", href: "/categories" },
+  { icon: Lightbulb, label: "Project Ideas", href: "/project-ideas" },
   { icon: CreditCard, label: "Payments & Commissions", href: "/payments" },
   { icon: MessageSquare, label: "Content Moderation", href: "/moderation" },
   { icon: Crown, label: "Subscriptions", href: "/subscriptions" },
