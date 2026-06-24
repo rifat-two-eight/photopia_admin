@@ -96,7 +96,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
               {menuItems.map((item) => {
                 const isActive = pathname === item.href;
                 const Icon = item.icon;
-                const isNotifications = item.href === "/notifications";
+                const isMessages = item.href === "/messages";
 
                 return (
                   <Link
@@ -110,7 +110,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
                   >
                     <Icon className="w-5 h-5" />
                     {item.label}
-                    {isNotifications && unreadNotifications > 0 && (
+                    {isMessages && unreadNotifications > 0 && (
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
                         {unreadNotifications > 99 ? '99+' : unreadNotifications}
                       </span>
