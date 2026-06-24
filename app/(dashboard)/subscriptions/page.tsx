@@ -34,42 +34,42 @@ const SubscriptionsPage = () => {
   }, []);
 
   const stats: SubscriptionStat[] = [
-    { 
-      label: 'Total Provider', 
-      value: statsData?.totalProvider.count.toString() || '0', 
-      change: statsData?.totalProvider.percentageChange.toString(), 
-      subtext: 'this month', 
-      icon: 'users' 
+    {
+      label: 'Total Provider',
+      value: statsData?.totalProvider.count.toString() || '0',
+      change: statsData?.totalProvider.percentageChange.toString(),
+      subtext: 'this month',
+      icon: 'users'
     },
-    { 
-      label: 'Monthly Revenue', 
-      value: `€${(statsData?.monthlyRevenue.amount || 0).toLocaleString()}`, 
-      change: statsData?.monthlyRevenue.percentageChange.toString(), 
-      subtext: 'this month', 
-      icon: 'dollar' 
+    {
+      label: 'Monthly Revenue',
+      value: `€${(statsData?.monthlyRevenue.amount || 0).toLocaleString()}`,
+      change: statsData?.monthlyRevenue.percentageChange.toString(),
+      subtext: 'this month',
+      icon: 'dollar'
     },
-    { 
-      label: 'Premium Subscribers', 
-      value: statsData?.premiumSubscribers.count.toString() || '0', 
-      subtext: `€${statsData?.premiumSubscribers.pricePerMonth || 0}/month each`, 
-      icon: 'crown' 
+    {
+      label: 'Premium Subscribers',
+      value: statsData?.premiumSubscribers.count.toString() || '0',
+      subtext: `€${statsData?.premiumSubscribers.pricePerMonth || 0}/month each`,
+      icon: 'crown'
     },
-    { 
-      label: 'No Subscribers', 
-      value: statsData?.noSubscribers.count.toString() || '0', 
-      icon: 'store' 
+    {
+      label: 'No Subscribers',
+      value: statsData?.noSubscribers.count.toString() || '0',
+      icon: 'store'
     }
   ];
 
   // Map active plan to existing mock structure for the Edit form if needed
   const plan: SubscriptionPlan = {
     id: 'premium-plan',
-    name: statsData?.activePlan.name || 'Photopia Premium',
+    name: statsData?.activePlan.name || 'Photopya Premium',
     price: statsData?.activePlan.price || 16,
     features: statsData?.activePlan.features.map((f, i) => ({ id: i.toString(), text: f })) || [],
     stats: {
-        subscribers: statsData?.activePlan.subscribers || 0,
-        monthlyRevenue: statsData?.activePlan.monthlyRevenue || 0
+      subscribers: statsData?.activePlan.subscribers || 0,
+      monthlyRevenue: statsData?.activePlan.monthlyRevenue || 0
     }
   };
 
@@ -83,14 +83,14 @@ const SubscriptionsPage = () => {
 
   if (isEditingPlan) {
     return (
-        <EditPlanForm 
-            plan={plan} 
-            onBack={() => setIsEditingPlan(false)}
-            onSave={(updated) => {
-                console.log('Saved:', updated);
-                setIsEditingPlan(false);
-            }}
-        />
+      <EditPlanForm
+        plan={plan}
+        onBack={() => setIsEditingPlan(false)}
+        onSave={(updated) => {
+          console.log('Saved:', updated);
+          setIsEditingPlan(false);
+        }}
+      />
     );
   }
 
@@ -109,18 +109,18 @@ const SubscriptionsPage = () => {
       </div>
 
       <SubscriptionStats stats={stats} loading={isLoading} />
-      <SubscriptionCharts 
-        loading={isLoading} 
-        growthData={statsData?.subscriberGrowth} 
+      <SubscriptionCharts
+        loading={isLoading}
+        growthData={statsData?.subscriberGrowth}
         revenueDistribution={statsData?.revenueDistribution}
       />
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-         <PlanCard 
-           plan={statsData?.activePlan} 
-           loading={isLoading}
-           onEdit={() => setIsEditingPlan(true)} 
-         />
+        <PlanCard
+          plan={statsData?.activePlan}
+          loading={isLoading}
+          onEdit={() => setIsEditingPlan(true)}
+        />
       </div>
 
       <div className="space-y-4">
@@ -128,7 +128,7 @@ const SubscriptionsPage = () => {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
         />
-        
+
         <SubscribersTable subscribers={subscribers} />
       </div>
     </div>

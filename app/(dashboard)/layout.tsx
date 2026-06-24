@@ -81,7 +81,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between px-6 py-6 -mb-6">
-            <Image height={32} width={140} alt="Photopia" src="/logo.svg" />
+            <Image height={32} width={140} alt="Photopya" src="/logo.svg" />
             <button
               onClick={() => setIsSidebarOpen(false)}
               className="lg:hidden text-gray-500 hover:text-gray-700"
@@ -155,7 +155,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
         {/* Mobile Header */}
         <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
           <div className="flex items-center justify-between">
-            <Image height={28} width={120} alt="Photopia" src="/logo.svg" />
+            <Image height={28} width={120} alt="Photopya" src="/logo.svg" />
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="text-gray-500 hover:text-gray-700"
