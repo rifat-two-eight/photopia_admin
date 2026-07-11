@@ -39,19 +39,23 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
       if (editingIdeaId && projectIdeasData?.data?.data) {
         const idea = projectIdeasData.data.data.find(i => i._id === editingIdeaId);
         if (idea) {
-          setTitle(idea.title);
-          setLinkText(idea.linkText);
-          setSelectedTheme(idea.subCategoryId?.theme || '');
-          setSubCategoryId(idea.subCategoryId?._id || '');
-          setOrder(idea.order);
+          setTimeout(() => {
+            setTitle(idea.title);
+            setLinkText(idea.linkText);
+            setSelectedTheme(idea.subCategoryId?.theme || '');
+            setSubCategoryId(idea.subCategoryId?._id || '');
+            setOrder(idea.order);
+          }, 0);
         }
       } else {
         // Reset form
-        setTitle('');
-        setLinkText('');
-        setSelectedTheme('');
-        setSubCategoryId('');
-        setOrder(0);
+        setTimeout(() => {
+          setTitle('');
+          setLinkText('');
+          setSelectedTheme('');
+          setSubCategoryId('');
+          setOrder(0);
+        }, 0);
       }
     }
   }, [isOpen, editingIdeaId, projectIdeasData]);
@@ -80,7 +84,7 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
         toast.success('Project idea created successfully');
       }
       onClose();
-    } catch (error) {
+    } catch {
       toast.error('Failed to save project idea');
     }
   };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Camera, Video, Edit3, Globe } from 'lucide-react';
+import { Globe } from 'lucide-react';
 import { ThemeOption } from '../types';
 
 interface ThemeTabsProps {

@@ -63,5 +63,5 @@ export interface SingleCategoryResponse {
 export interface ThemeOption {
   id: string;
   name: string;
-  icon: any;
+  icon: React.ElementType;
 }

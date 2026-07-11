@@ -4,9 +4,7 @@ import {
   ChevronRight,
   Edit2,
   Trash2,
-  Plus,
-  Eye,
-  EyeOff
+  Plus
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ArrowLeft, AlertTriangle, AlertOctagon, MessageSquare, 
+  ArrowLeft, AlertTriangle, MessageSquare, 
   X, Ban, Archive, CheckCircle, RotateCcw 
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -89,7 +89,7 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ reportId, onBack }) 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDetails = async () => {
+  const fetchDetails = React.useCallback(async () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get<ApiResponse<ModerationReportDetailResponse>>(`/dashboard/moderation-reports/${reportId}`);
@@ -98,16 +98,17 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ reportId, onBack }) 
       } else {
         setError(response.data.message || "Failed to fetch report details");
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || "An error occurred while fetching details");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || "An error occurred while fetching details");
     } finally {
       setLoading(false);
     }
-  };
+  }, [reportId]);
 
   useEffect(() => {
     fetchDetails();
-  }, [reportId]);
+  }, [fetchDetails]);
 
   const handleAction = async (action: 'warning' | 'block' | 'remove' | 'archive' | 'refund' | 'close') => {
     try {
@@ -120,8 +121,9 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ reportId, onBack }) 
         } else {
             toast.error(response.data.message || `Failed to perform action: ${action}`);
         }
-    } catch (err: any) {
-        toast.error(err.response?.data?.message || `An error occurred during action: ${action}`);
+    } catch (err: unknown) {
+        const error = err as { response?: { data?: { message?: string } } };
+        toast.error(error.response?.data?.message || `An error occurred during action: ${action}`);
     } finally {
         setIsProcessing(false);
     }
@@ -289,7 +291,7 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ reportId, onBack }) 
             <CardContent className="p-6">
               <h3 className="text-base font-semibold text-gray-900 mb-6">Moderation Log</h3>
               <div className="relative pl-2 space-y-8 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-px before:bg-gray-200">
-                {moderationLog.map((log: any, index: number) => (
+                {moderationLog.map((log: { action: string; by: string; details: string; timestamp: string }, index: number) => (
                   <div key={index} className="relative pl-6">
                     <div className="absolute left-0 top-1.5 w-5 h-5 bg-white border-2 border-blue-500 rounded-full z-10 box-content -ml-[3.5px]">
                       <div className="w-2 h-2 bg-blue-500 rounded-full m-1.5" />
@@ -344,14 +346,14 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ reportId, onBack }) 
             <CardContent className="p-6">
               <h3 className="text-base font-semibold text-gray-900 mb-4">Related Reports</h3>
               <div className="space-y-3">
-                {relatedReports.map((related: any, index: number) => (
+                {relatedReports.map((related: Record<string, unknown>, index: number) => (
                   <div key={index} className="border border-gray-100 rounded-lg p-3">
                     <div className="flex justify-between items-start mb-2">
                        <span className="text-sm font-medium text-gray-900">Similar content</span>
-                       <span className="text-xs text-gray-500">{formatDate(related.date)}</span>
+                       <span className="text-xs text-gray-500">{formatDate(related.date as string)}</span>
                     </div>
                     <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                      {formatStatusLabel(related.status)}
+                      {formatStatusLabel(related.status as Status)}
                     </Badge>
                   </div>
                 ))}

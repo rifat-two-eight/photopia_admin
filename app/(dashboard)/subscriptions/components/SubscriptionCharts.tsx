@@ -117,6 +117,7 @@ export const SubscriptionCharts: React.FC<SubscriptionChartsProps> = ({
                   ))}
                 </Pie>
                 <Tooltip 
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   formatter={(value: any) => `€${Number(value).toLocaleString()}`}
                   contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #E5E7EB', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   itemStyle={{ fontSize: '12px' }}

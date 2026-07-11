@@ -63,7 +63,7 @@ const CategoryManagement = () => {
           { label: 'Total Subcategories', value: totalSubCategories.toLocaleString() }
         ]);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Failed to fetch statistics:", error);
     }
   };
@@ -71,7 +71,7 @@ const CategoryManagement = () => {
   const fetchCategories = useCallback(async () => {
     try {
       setIsLoading(true);
-      const params: any = {
+      const params: Record<string, string | number> = {
         type: 'category',
         limit: 10,
         page: currentPage,
@@ -92,8 +92,9 @@ const CategoryManagement = () => {
         setTotalPages(response.data.data.meta.totalPages || 1);
         setTotalItems(response.data.data.meta.total || 0);
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to fetch categories");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to fetch categories");
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +120,7 @@ const CategoryManagement = () => {
           [categoryId]: sortedData
         }));
       }
-    } catch (error: any) {
+    } catch {
       toast.error("Failed to fetch subcategories");
     }
   };
@@ -165,8 +166,9 @@ const CategoryManagement = () => {
           fetchCategories();
           fetchCategoryStats();
         }
-      } catch (error: any) {
-        toast.error(error.response?.data?.message || "Failed to add category");
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || "Failed to add category");
       }
     }
   };
@@ -198,8 +200,9 @@ const CategoryManagement = () => {
           fetchSubcategories(parent._id);
           fetchCategoryStats();
         }
-      } catch (error: any) {
-        toast.error(error.response?.data?.message || "Failed to add subcategory");
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || "Failed to add subcategory");
       }
     }
   };
@@ -226,8 +229,9 @@ const CategoryManagement = () => {
             fetchSubcategories(parentId);
           }
         }
-      } catch (error: any) {
-        toast.error(error.response?.data?.message || "Failed to update");
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || "Failed to update");
       }
     }
   };
@@ -257,8 +261,9 @@ const CategoryManagement = () => {
             }
           });
         }
-      } catch (error: any) {
-        toast.error(error.response?.data?.message || "Failed to delete");
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || "Failed to delete");
       }
     }
   };
@@ -270,7 +275,7 @@ const CategoryManagement = () => {
         toast.success("Status updated");
         fetchCategories();
       }
-    } catch (error: any) {
+    } catch {
       toast.error("Failed to update status");
     }
   };

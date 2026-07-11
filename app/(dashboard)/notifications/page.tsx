@@ -8,15 +8,14 @@ import { useSocket } from '@/context/SocketContext';
 
 const NotificationsPage = () => {
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+
     const { socket, setUnreadNotifications } = useSocket();
 
-    const fetchNotifications = async () => {
+    const fetchNotifications = React.useCallback(async () => {
         try {
-            setIsLoading(true);
             const response = await axiosInstance.get("/notifications");
             if (response.data.success) {
-                const mappedData: NotificationItem[] = response.data.data.map((item: any) => ({
+                const mappedData: NotificationItem[] = response.data.data.map((item: { _id: string; title: string; content: string; createdAt: string; type: string; isRead: boolean }) => ({
                     id: item._id,
                     title: item.title,
                     description: item.content,
@@ -26,23 +25,24 @@ const NotificationsPage = () => {
                 }));
                 setNotifications(mappedData);
             }
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || "Failed to fetch notifications");
-        } finally {
-            setIsLoading(false);
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            toast.error(err.response?.data?.message || "Failed to fetch notifications");
         }
-    };
+    }, []);
 
     useEffect(() => {
-        fetchNotifications();
-        // Reset unread count when visiting the page
-        setUnreadNotifications(0);
-    }, []);
+        setTimeout(() => {
+            fetchNotifications();
+            // Reset unread count when visiting the page
+            setUnreadNotifications(0);
+        }, 0);
+    }, [fetchNotifications, setUnreadNotifications]);
 
     useEffect(() => {
         if (!socket) return;
 
-        const handleNewNotification = (payload: any) => {
+        const handleNewNotification = (payload: { type: string; data: { _id: string; title: string; content: string; createdAt: string; type: string } }) => {
             if (payload.type === 'NEW_NOTIFICATION') {
                 const newItem: NotificationItem = {
                     id: payload.data._id,

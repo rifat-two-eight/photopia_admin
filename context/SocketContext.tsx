@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { decodeToken } from '@/lib/auth';
 import { toast } from 'sonner';
@@ -98,7 +98,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     });
 
-    setSocket(newSocket);
+    setTimeout(() => setSocket(newSocket), 0);
 
     return () => {
       console.log('Socket: Cleaning up connection');

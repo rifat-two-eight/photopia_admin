@@ -5,9 +5,8 @@ import { PaymentStats } from './components/PaymentStats';
 import { PaymentCharts } from './components/PaymentCharts';
 import { PaymentsFilters } from './components/PaymentsFilters';
 import { TransactionsTable } from './components/TransactionsTable';
-import { PaymentsPagination } from './components/PaymentsPagination';
 import { PaymentDetail } from './components/PaymentDetail';
-import { RecentTransactionItem, PaymentStat, PaymentStatsApiResponse, TransactionsResponse } from './types';
+import { RecentTransactionItem, PaymentStat, PaymentStatsApiResponse } from './types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ApiResponse<T> {
@@ -47,8 +46,9 @@ const PaymentsPage = () => {
         if (statsRes.data.success) {
           setApiData(statsRes.data.data);
         }
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'An error occurred while fetching payment data');
+      } catch (err: unknown) {
+        const error = err as { response?: { data?: { message?: string } } };
+        setError(error.response?.data?.message || 'An error occurred while fetching payment data');
       } finally {
         setLoading(false);
       }
@@ -69,7 +69,7 @@ const PaymentsPage = () => {
             if (txnsRes.data.success) {
                 setRecentTransactions(txnsRes.data.data);
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Failed to fetch transactions:", err);
             setRecentTransactions([]);
         } finally {

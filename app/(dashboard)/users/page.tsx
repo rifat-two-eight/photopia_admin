@@ -32,6 +32,31 @@ const UserManagement = () => {
     { label: 'Suspended', value: '...', highlight: true }
   ]);
 
+  const fetchUsers = React.useCallback(async () => {
+    try {
+      setIsLoadingUsers(true);
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '10',
+        searchTerm: debouncedSearch,
+      });
+      if (filters.role !== 'all') params.append('role', filters.role);
+      if (filters.status !== 'all') params.append('status', filters.status);
+
+      const response = await axiosInstance.get<UsersResponse>(`/users?${params.toString()}`);
+      if (response.data.success) {
+        setUsers(response.data.data);
+        setTotalPages(response.data.meta.totalPages);
+        setTotalItems(response.data.meta.total);
+      }
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to fetch users");
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  }, [currentPage, debouncedSearch, filters]);
+
   // Debounce search query
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -49,7 +74,7 @@ const UserManagement = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, debouncedSearch, filters]);
+  }, [currentPage, debouncedSearch, filters, fetchUsers]);
 
   const fetchUserStats = async () => {
     try {
@@ -63,34 +88,12 @@ const UserManagement = () => {
           { label: 'Suspended', value: suspended.toLocaleString(), highlight: true }
         ]);
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to fetch user stats");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to fetch user stats");
     }
   };
 
-  const fetchUsers = async () => {
-    try {
-      setIsLoadingUsers(true);
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: '10',
-        searchTerm: debouncedSearch,
-      });
-      if (filters.role !== 'all') params.append('role', filters.role);
-      if (filters.status !== 'all') params.append('status', filters.status);
-
-      const response = await axiosInstance.get<UsersResponse>(`/users?${params.toString()}`);
-      if (response.data.success) {
-        setUsers(response.data.data);
-        setTotalPages(response.data.meta.totalPages);
-        setTotalItems(response.data.meta.total);
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to fetch users");
-    } finally {
-      setIsLoadingUsers(false);
-    }
-  };
 
   const fetchUserDetails = async (user: User | { id: string }) => {
     try {
@@ -100,8 +103,9 @@ const UserManagement = () => {
       if (response.data.success) {
         setSelectedUser(response.data.data);
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to fetch user details");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to fetch user details");
     } finally {
       setIsLoadingDetails(false);
     }
@@ -147,10 +151,11 @@ const UserManagement = () => {
           // If we are in detail view, refresh it
           if (selectedUser) fetchUserDetails({ id: userId });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
         Swal.fire({
           title: 'Error!',
-          text: error.response?.data?.message || "Failed to send warning",
+          text: err.response?.data?.message || "Failed to send warning",
           icon: 'error',
           confirmButtonColor: '#1E1E1E'
         });
@@ -194,10 +199,11 @@ const UserManagement = () => {
             fetchUserDetails({ id: userId });
           }
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
         Swal.fire({
           title: 'Error!',
-          text: error.response?.data?.message || `Failed to ${actionText} user`,
+          text: err.response?.data?.message || `Failed to ${actionText} user`,
           icon: 'error',
           confirmButtonColor: '#1E1E1E'
         });
@@ -234,10 +240,11 @@ const UserManagement = () => {
           fetchUserStats();
           if (selectedUser) setSelectedUser(null);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
         Swal.fire({
           title: 'Error!',
-          text: error.response?.data?.message || "Failed to delete user",
+          text: err.response?.data?.message || "Failed to delete user",
           icon: 'error',
           confirmButtonColor: '#1E1E1E'
         });

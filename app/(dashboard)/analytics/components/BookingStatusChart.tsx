@@ -44,6 +44,7 @@ export const BookingStatusChart: React.FC<BookingStatusChartProps> = ({ data = [
               <Tooltip
                 contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #E5E7EB' }}
                 itemStyle={{ fontSize: '12px' }}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 formatter={(value: any, name: any, props: any) => [`${value} (${props.payload.percentage}%)`, name]}
               />
             </PieChart>

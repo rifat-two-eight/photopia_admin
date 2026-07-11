@@ -5,7 +5,7 @@ import { ModerationStats } from './components/ModerationStats';
 import { ModerationFilters } from './components/ModerationFilters';
 import { ReportList } from './components/ReportList';
 import { ReportDetail } from './components/ReportDetail';
-import { Report, ModerationStat, ModerationStatsApiResponse, ModerationReportItem } from './types';
+import { ModerationStat, ModerationStatsApiResponse, ModerationReportItem } from './types';
 import { Button } from '@/components/ui/button';
 
 const ModerationPage = () => {

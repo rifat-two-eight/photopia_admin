@@ -73,10 +73,11 @@ export default function LoginPage() {
       } else {
         toast.error(response.data.message || "Login failed");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login error:", error);
+      const err = error as { response?: { data?: { message?: string } } };
       toast.error(
-        error.response?.data?.message || "Invalid email or password. Please try again."
+        err.response?.data?.message || "Invalid email or password. Please try again."
       );
     } finally {
       setIsLoading(false);

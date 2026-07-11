@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { ArrowLeft } from "lucide-react";
 import axiosInstance from "@/lib/axios";
 
 export default function OTPVerifyPage() {
@@ -74,7 +72,7 @@ export default function OTPVerifyPage() {
       setTimeout(() => {
         router.push("/reset");
       }, 1000);
-    } catch (error) {
+    } catch {
       toast.error("Invalid OTP code. Please try again.");
     } finally {
       setIsLoading(false);
@@ -100,8 +98,9 @@ export default function OTPVerifyPage() {
       } else {
         toast.error(response.data.message || "Failed to resend code.");
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to resend code. Please try again.");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to resend code. Please try again.");
     } finally {
       setIsResending(false);
     }
@@ -157,7 +156,7 @@ export default function OTPVerifyPage() {
 
             {/* Resend Link */}
             <div className="text-center text-sm">
-              <span className="text-gray-600">Don't receive any code? </span>
+              <span className="text-gray-600">Don&apos;t receive any code? </span>
               <button
                 type="button"
                 onClick={handleResend}

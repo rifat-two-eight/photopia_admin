@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Crown, Trash2, Plus, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { SubscriptionPlan, PlanFeature } from '../types';
 

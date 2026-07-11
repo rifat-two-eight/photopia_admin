@@ -17,7 +17,6 @@ export const UserPagination: React.FC<UserPaginationProps> = ({
   onPageChange
 }) => {
   // Calculate showing range
-  const start = (currentPage - 1) * itemsPerPage + 1;
   const end = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (

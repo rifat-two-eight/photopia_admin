@@ -32,7 +32,7 @@ export default function ProjectIdeasTable({ ideas, onEdit }: ProjectIdeasTablePr
       try {
         await deleteIdea(id).unwrap();
         toast.success('Project idea deleted successfully');
-      } catch (error) {
+      } catch {
         toast.error('Failed to delete project idea');
       }
     }

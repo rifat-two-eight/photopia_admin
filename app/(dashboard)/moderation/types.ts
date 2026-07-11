@@ -43,7 +43,7 @@ export interface ModerationReportDetailResponse {
         accountAge: string;
         accountStatus: string;
     };
-    relatedReports: any[];
+    relatedReports: Record<string, unknown>[];
     moderationLog: {
         action: string;
         by: string;

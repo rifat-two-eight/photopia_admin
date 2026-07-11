@@ -17,7 +17,6 @@ import {
   BarChart3,
   MessageCircle,
   Bell,
-  LogOut,
   Menu,
   X,
   Lightbulb,
@@ -53,7 +52,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
       router.push("/login");
     }
     if (name) {
-      setUserName(name);
+      setTimeout(() => setUserName(name), 0);
     }
   }, [router]);
 

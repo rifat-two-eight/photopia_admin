@@ -8,7 +8,6 @@ import {
   Users,
   Building2,
   Clock,
-  AlertCircle,
 } from "lucide-react";
 import { MainMetrics } from "@/types/dashboard";
 

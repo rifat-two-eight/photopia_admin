@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -41,7 +40,7 @@ export default function ResetPasswordPage() {
       setTimeout(() => {
         router.push("/login");
       }, 1000);
-    } catch (error) {
+    } catch {
       toast.error("Failed to reset password. Please try again.");
     } finally {
       setIsLoading(false);

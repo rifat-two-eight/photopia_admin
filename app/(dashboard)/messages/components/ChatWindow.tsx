@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Phone, Video, Info, MoreVertical, Paperclip, Send, X } from 'lucide-react';
+import { Phone, Info, MoreVertical, Paperclip, Send, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -88,8 +88,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
         setNewMessage('');
         removeFile();
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to send message");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to send message");
     } finally {
       setIsSending(false);
     }
@@ -196,6 +197,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
       {previewUrl && (
         <div className="px-4 py-2 border-t border-gray-100 bg-white flex items-center gap-4">
           <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
             <button
               onClick={removeFile}

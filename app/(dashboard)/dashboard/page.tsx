@@ -39,9 +39,10 @@ export default function DashboardPage() {
         } else {
           setError(response.data.message || "Failed to fetch dashboard stats");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Fetch error:", err);
-        setError(err.response?.data?.message || err.message || "An error occurred while fetching stats");
+        const error = err as { response?: { data?: { message?: string } }; message?: string };
+        setError(error.response?.data?.message || error.message || "An error occurred while fetching stats");
       } finally {
         setLoading(false);
       }

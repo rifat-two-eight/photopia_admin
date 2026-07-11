@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, CreditCard, User, Calendar, FileText, Download, RotateCcw } from 'lucide-react';
+import { ArrowLeft, CreditCard, User, Calendar, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,7 +26,7 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transactionId, onB
   const [isRefunding, setIsRefunding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDetails = async () => {
+  const fetchDetails = React.useCallback(async () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get<ApiResponse<TransactionDetailApiResponse>>(`/dashboard/recent-transactions/${transactionId}`);
@@ -35,16 +35,17 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transactionId, onB
       } else {
         setError(response.data.message || 'Failed to fetch transaction details');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred while fetching details');
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || 'An error occurred while fetching details');
     } finally {
       setLoading(false);
     }
-  };
+  }, [transactionId]);
 
   useEffect(() => {
     fetchDetails();
-  }, [transactionId]);
+  }, [fetchDetails]);
 
   const handleRefund = async () => {
     const result = await Swal.fire({
@@ -71,10 +72,11 @@ export const PaymentDetail: React.FC<PaymentDetailProps> = ({ transactionId, onB
           });
           fetchDetails(); // Refresh to show new status
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const error = err as { response?: { data?: { message?: string } } };
         Swal.fire({
           title: 'Error!',
-          text: err.response?.data?.message || 'Failed to process refund. Please try again.',
+          text: error.response?.data?.message || 'Failed to process refund. Please try again.',
           icon: 'error',
           confirmButtonColor: '#1E1E1E'
         });

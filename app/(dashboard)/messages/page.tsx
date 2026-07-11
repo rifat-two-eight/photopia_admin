@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ConversationList } from './components/ConversationList';
 import { ChatWindow } from './components/ChatWindow';
 import { Chat, Message, ChatResponse, MessageResponse } from './types';
@@ -16,6 +16,24 @@ const MessagesPage = () => {
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const { socket, userId } = useSocket();
 
+  const fetchChats = useCallback(async () => {
+    try {
+      setIsLoadingChats(true);
+      const response = await axiosInstance.get<ChatResponse>('/chat');
+      if (response.data.success) {
+        setChats(response.data.data.chats);
+        if (response.data.data.chats.length > 0 && !activeId) {
+          setActiveId(response.data.data.chats[0]._id);
+        }
+      }
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to fetch chats");
+    } finally {
+      setIsLoadingChats(false);
+    }
+  }, [activeId]);
+
   useEffect(() => {
     if (!socket || !userId) return;
 
@@ -29,7 +47,7 @@ const MessagesPage = () => {
     return () => {
       socket.off(`updateChatList::${userId}`, handleUpdateChatList);
     };
-  }, [socket, userId]);
+  }, [socket, userId, fetchChats]);
 
   useEffect(() => {
     if (!socket || !activeId) return;
@@ -52,7 +70,7 @@ const MessagesPage = () => {
 
   useEffect(() => {
     fetchChats();
-  }, []);
+  }, [fetchChats]);
 
   useEffect(() => {
     if (activeId) {
@@ -60,22 +78,6 @@ const MessagesPage = () => {
     }
   }, [activeId]);
 
-  const fetchChats = async () => {
-    try {
-      setIsLoadingChats(true);
-      const response = await axiosInstance.get<ChatResponse>('/chat');
-      if (response.data.success) {
-        setChats(response.data.data.chats);
-        if (response.data.data.chats.length > 0 && !activeId) {
-          setActiveId(response.data.data.chats[0]._id);
-        }
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to fetch chats");
-    } finally {
-      setIsLoadingChats(false);
-    }
-  };
 
   const fetchMessages = async (chatId: string) => {
     try {
@@ -84,8 +86,9 @@ const MessagesPage = () => {
       if (response.data.success) {
         setMessages(response.data.data);
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to fetch messages");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to fetch messages");
     } finally {
       setIsLoadingMessages(false);
     }
