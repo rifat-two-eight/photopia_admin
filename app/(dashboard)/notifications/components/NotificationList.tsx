@@ -32,25 +32,32 @@ const getBgColor = (type: NotificationItem['type']) => {
 
 export const NotificationList: React.FC<NotificationListProps> = ({ notifications }) => {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {notifications.map((notification) => (
         <Card 
             key={notification.id} 
-            className="shadow-sm border border-gray-100 transition-shadow hover:shadow-md"
+            className={`shadow-sm border transition-all duration-200 hover:shadow-md hover:border-blue-100 rounded-xl overflow-hidden group ${
+              notification.isUnread ? 'border-blue-100 bg-blue-50/30' : 'border-gray-100 bg-white'
+            }`}
         >
-          <CardContent className="p-4 flex items-start gap-4">
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${getBgColor(notification.type)}`}>
+          <CardContent className="p-5 flex items-start gap-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${getBgColor(notification.type)} group-hover:scale-105 transition-transform`}>
               {getIcon(notification.type)}
             </div>
             
-            <div className="flex-1 min-w-0 pt-0.5">
+            <div className="flex-1 min-w-0 pt-1">
                <div className="flex justify-between items-start">
-                    <h3 className="text-sm font-semibold text-gray-900">
-                        {notification.title}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                        <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                            {notification.title}
+                        </h3>
+                        {notification.isUnread && (
+                            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                        )}
+                    </div>
+                    <span className="text-xs font-medium text-gray-400 shrink-0 whitespace-nowrap">{notification.time}</span>
                </div>
-               <p className="text-sm text-gray-600 mt-0.5">{notification.description}</p>
-               <p className="text-xs text-gray-400 mt-1.5">{notification.time}</p>
+               <p className="text-sm text-gray-600 mt-1 leading-relaxed">{notification.description}</p>
             </div>
           </CardContent>
         </Card>

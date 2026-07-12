@@ -9,6 +9,9 @@ import { SubscribersTable } from './components/SubscribersTable';
 import { EditPlanForm } from './components/EditPlanForm';
 import { SubscriptionStat, SubscriptionPlan, Subscriber, SubscriptionStatsApiResponse } from './types';
 import LocationSelector from "@/components/dashboard/LocationSelector";
+import { SubscriberViewModal } from './components/SubscriberViewModal';
+import Swal from 'sweetalert2';
+import { toast } from 'sonner';
 
 const SubscriptionsPage = () => {
   const [isEditingPlan, setIsEditingPlan] = useState(false);
@@ -18,35 +21,87 @@ const SubscriptionsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [country, setCountry] = useState<string | null>(null);
   const [city, setCity] = useState<string | null>(null);
+  const [selectedSubscriber, setSelectedSubscriber] = useState<Subscriber | null>(null);
+
+  const fetchStats = React.useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const params = new URLSearchParams();
+      if (country) params.append("country", country);
+      if (city) params.append("city", city);
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const [statsResponse, subscribersResponse] = await Promise.all([
+        axiosInstance.get(`/dashboard/subscription-stats${queryString}`),
+        axiosInstance.get(`/dashboard/subscribers${queryString}`)
+      ]);
+
+      if (statsResponse.data.success) {
+        setStatsData(statsResponse.data.data);
+      }
+      if (subscribersResponse.data.success) {
+        setSubscribers(subscribersResponse.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching subscription stats:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [country, city]);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setIsLoading(true);
-        const params = new URLSearchParams();
-        if (country) params.append("country", country);
-        if (city) params.append("city", city);
-        const queryString = params.toString() ? `?${params.toString()}` : '';
-
-        const [statsResponse, subscribersResponse] = await Promise.all([
-          axiosInstance.get(`/dashboard/subscription-stats${queryString}`),
-          axiosInstance.get(`/dashboard/subscribers${queryString}`)
-        ]);
-
-        if (statsResponse.data.success) {
-          setStatsData(statsResponse.data.data);
-        }
-        if (subscribersResponse.data.success) {
-          setSubscribers(subscribersResponse.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching subscription stats:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchStats();
-  }, [country, city]);
+  }, [fetchStats]);
+
+  const handleCancelSubscription = async (subscriberId: string) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You are about to cancel this subscription.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#E7000B',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Yes, cancel it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await axiosInstance.delete(`/subscription/${subscriberId}/cancel`);
+        if (response.data.success) {
+          toast.success(response.data.message || 'Subscription cancelled successfully');
+          fetchStats(); // Refresh data
+        }
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || "Failed to cancel subscription");
+      }
+    }
+  };
+
+  const handleReactivateSubscription = async (subscriberId: string) => {
+    const result = await Swal.fire({
+      title: 'Reactivate Subscription?',
+      text: "This will reactivate the subscription.",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10B981',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Yes, reactivate!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await axiosInstance.post(`/subscription/${subscriberId}/reactivate`);
+        if (response.data.success) {
+          toast.success(response.data.message || 'Subscription reactivated successfully');
+          fetchStats(); // Refresh data
+        }
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || "Failed to reactivate subscription");
+      }
+    }
+  };
 
   const stats: SubscriptionStat[] = [
     {
@@ -102,7 +157,7 @@ const SubscriptionsPage = () => {
   }
 
   return (
-    <div className="space-y-6 bg-white -my-3 p-5 lg:p-10 rounded-xl shadow-md">
+    <div className="space-y-6 bg-white -my-3 p-5 lg:p-10 rounded-xl shadow-md relative">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 -mt-4">Subscription Management</h1>
@@ -143,8 +198,20 @@ const SubscriptionsPage = () => {
           onSearchChange={setSearchQuery}
         />
 
-        <SubscribersTable subscribers={subscribers} />
+        <SubscribersTable 
+          subscribers={subscribers} 
+          onView={setSelectedSubscriber}
+          onCancel={handleCancelSubscription}
+          onReactivate={handleReactivateSubscription}
+        />
       </div>
+
+      {selectedSubscriber && (
+        <SubscriberViewModal 
+          subscriber={selectedSubscriber} 
+          onClose={() => setSelectedSubscriber(null)} 
+        />
+      )}
     </div>
   );
 };

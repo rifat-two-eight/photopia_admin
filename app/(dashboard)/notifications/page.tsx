@@ -8,10 +8,12 @@ import { useSocket } from '@/context/SocketContext';
 
 const NotificationsPage = () => {
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const { socket, setUnreadNotifications } = useSocket();
 
     const fetchNotifications = React.useCallback(async () => {
+        setIsLoading(true);
         try {
             const response = await axiosInstance.get("/notifications/my");
             if (response.data.success) {
@@ -28,6 +30,8 @@ const NotificationsPage = () => {
         } catch (error: unknown) {
             const err = error as { response?: { data?: { message?: string } } };
             toast.error(err.response?.data?.message || "Failed to fetch notifications");
+        } finally {
+            setIsLoading(false);
         }
     }, []);
 
@@ -68,14 +72,39 @@ const NotificationsPage = () => {
     }, [socket]);
 
     return (
-        <div className="bg-white -my-3 p-5 lg:p-10 rounded-xl shadow-md min-h-screen">
-            <div className="flex justify-between items-start mb-6 -mt-4">
+        <div className="bg-white p-6 lg:p-10 rounded-2xl shadow-sm border border-gray-100 min-h-[calc(100vh-140px)]">
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
                 <div>
-                    <h1 className="text-2xl font-semibold text-gray-900">Notifications</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Notifications</h1>
+                    <p className="text-sm text-gray-500 mt-1">Stay updated with your latest alerts and messages.</p>
                 </div>
             </div>
 
-            <NotificationList notifications={notifications} />
+            {isLoading ? (
+                <div className="flex flex-col space-y-4">
+                    {[1, 2, 3, 4].map(n => (
+                        <div key={n} className="flex items-start gap-4 p-4 rounded-xl border border-gray-100 animate-pulse">
+                            <div className="w-10 h-10 bg-gray-200 rounded-lg shrink-0"></div>
+                            <div className="flex-1 space-y-2">
+                                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                                <div className="h-3 bg-gray-100 rounded w-3/4"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : notifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">No notifications yet</h3>
+                    <p className="text-gray-500 mt-1">When you get notifications, they'll show up here.</p>
+                </div>
+            ) : (
+                <NotificationList notifications={notifications} />
+            )}
         </div>
     );
 };

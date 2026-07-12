@@ -6,6 +6,9 @@ import { Subscriber, SubscriptionStatus } from '../types';
 
 interface SubscribersTableProps {
   subscribers: Subscriber[];
+  onView?: (subscriber: Subscriber) => void;
+  onCancel?: (subscriberId: string) => void;
+  onReactivate?: (subscriberId: string) => void;
 }
 
 const getStatusBadgeStyle = (status: SubscriptionStatus) => {
@@ -22,7 +25,12 @@ const getPlanBadgeStyle = (plan: Subscriber['plan']) => {
    return 'bg-gray-50 text-gray-700 border-gray-200';
 }
 
-export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers }) => {
+export const SubscribersTable: React.FC<SubscribersTableProps> = ({ 
+  subscribers,
+  onView,
+  onCancel,
+  onReactivate
+}) => {
   return (
     <Card className="shadow-sm overflow-hidden py-0 border border-gray-100">
       <CardContent className="p-0">
@@ -86,6 +94,7 @@ export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers 
                         <Button
                             size="sm"
                             className="bg-[#1C1C1E] hover:bg-gray-800 text-white h-7 text-xs px-3"
+                            onClick={() => onView?.(sub)}
                         >
                             View
                         </Button>
@@ -93,6 +102,7 @@ export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers 
                             size="sm"
                             variant="outline"
                             className="bg-white hover:bg-gray-50 text-gray-700 border-gray-200 h-7 text-xs px-3"
+                            onClick={() => sub.status === 'Cancelled' ? onReactivate?.(sub.id) : onCancel?.(sub.id)}
                         >
                             {sub.status === 'Cancelled' ? 'Reactivate' : 'Cancel'}
                         </Button>
@@ -100,6 +110,13 @@ export const SubscribersTable: React.FC<SubscribersTableProps> = ({ subscribers 
                   </td>
                 </tr>
               ))}
+              {subscribers.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
+                    No subscribers found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
