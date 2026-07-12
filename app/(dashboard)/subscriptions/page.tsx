@@ -14,15 +14,30 @@ const SubscriptionsPage = () => {
   const [isEditingPlan, setIsEditingPlan] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statsData, setStatsData] = useState<SubscriptionStatsApiResponse | null>(null);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [country, setCountry] = useState<string | null>(null);
+  const [city, setCity] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setIsLoading(true);
-        const response = await axiosInstance.get('/dashboard/subscription-stats');
-        if (response.data.success) {
-          setStatsData(response.data.data);
+        const params = new URLSearchParams();
+        if (country) params.append("country", country);
+        if (city) params.append("city", city);
+        const queryString = params.toString() ? `?${params.toString()}` : '';
+
+        const [statsResponse, subscribersResponse] = await Promise.all([
+          axiosInstance.get(`/dashboard/subscription-stats${queryString}`),
+          axiosInstance.get(`/dashboard/subscribers${queryString}`)
+        ]);
+
+        if (statsResponse.data.success) {
+          setStatsData(statsResponse.data.data);
+        }
+        if (subscribersResponse.data.success) {
+          setSubscribers(subscribersResponse.data.data);
         }
       } catch (error) {
         console.error("Error fetching subscription stats:", error);
@@ -31,7 +46,7 @@ const SubscriptionsPage = () => {
       }
     };
     fetchStats();
-  }, []);
+  }, [country, city]);
 
   const stats: SubscriptionStat[] = [
     {
@@ -73,14 +88,6 @@ const SubscriptionsPage = () => {
     }
   };
 
-  const subscribers: Subscriber[] = [
-    { id: '1', name: 'Sarah Johnson', email: 'sarah.j@example.com', plan: 'Premium', status: 'Active', startDate: '2024-06-15', nextBilling: '2025-01-15', totalRevenue: '€144' },
-    { id: '2', name: 'Michael Chen', email: 'michael.c@example.com', plan: 'Premium', status: 'Active', startDate: '2024-08-01', nextBilling: '2025-01-01', totalRevenue: '€495' },
-    { id: '3', name: 'Emma Wilson', email: 'emma.w@example.com', plan: 'Premium', status: 'Active', startDate: '2024-09-10', nextBilling: '2025-01-10', totalRevenue: '€64' },
-    { id: '4', name: 'James Rodriguez', email: 'james.r@example.com', plan: 'Premium', status: 'Cancelled', startDate: '2024-07-05', nextBilling: 'N/A', totalRevenue: '€594' },
-    { id: '5', name: 'Lisa Anderson', email: 'lisa.a@example.com', plan: 'Premium', status: 'Active', startDate: '2024-11-01', nextBilling: '2025-01-01', totalRevenue: '€32' },
-  ];
-
   if (isEditingPlan) {
     return (
       <EditPlanForm
@@ -104,7 +111,14 @@ const SubscriptionsPage = () => {
           </p>
         </div>
         <div className="mb-1">
-          <LocationSelector />
+          <LocationSelector 
+            selectedCountry={country}
+            selectedCity={city}
+            onLocationChange={(country, city) => {
+              setCountry(country);
+              setCity(city);
+            }} 
+          />
         </div>
       </div>
 
