@@ -22,9 +22,13 @@ const MessagesPage = () => {
       const response = await axiosInstance.get<ChatResponse>('/chat');
       if (response.data.success) {
         setChats(response.data.data.chats);
-        if (response.data.data.chats.length > 0 && !activeId) {
-          setActiveId(response.data.data.chats[0]._id);
-        }
+        // We only set activeId initially. If activeId changes, we don't need to re-fetch chats.
+        setActiveId(prev => {
+          if (!prev && response.data.data.chats.length > 0) {
+            return response.data.data.chats[0]._id;
+          }
+          return prev;
+        });
       }
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
@@ -32,7 +36,7 @@ const MessagesPage = () => {
     } finally {
       setIsLoadingChats(false);
     }
-  }, [activeId]);
+  }, []);
 
   useEffect(() => {
     if (!socket || !userId) return;

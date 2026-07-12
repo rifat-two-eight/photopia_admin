@@ -16,6 +16,12 @@ const ModerationPage = () => {
   const [reports, setReports] = useState<ModerationReportItem[]>([]);
   const [isLoadingReports, setIsLoadingReports] = useState(true);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const totalPages = Math.ceil(reports.length / itemsPerPage);
+  const currentReports = reports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -76,28 +82,42 @@ const ModerationPage = () => {
         />
 
         <ReportList 
-          reports={reports} 
+          reports={currentReports} 
           onReview={setSelectedReportId} 
           loading={isLoadingReports}
         />
 
         {/* Pagination */}
-        <div className="flex items-center justify-between pt-2">
-            <p className="text-sm text-gray-500">
-              Showing {reports.length} of {statsData?.totalReports || reports.length} reports
-            </p>
-            <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="bg-white hover:bg-gray-50 text-gray-700 border-gray-200">
-                    Previous
-                </Button>
-                <Button size="sm" className="bg-[#1C1C1E] hover:bg-gray-800 text-white">
-                    1
-                </Button>
-                <Button variant="outline" size="sm" className="bg-white hover:bg-gray-50 text-gray-700 border-gray-200 shadow-sm">
-                    Next
-                </Button>
-            </div>
-        </div>
+        {reports.length > 0 && (
+          <div className="flex items-center justify-between pt-2">
+              <p className="text-sm text-gray-500">
+                Showing {Math.min(reports.length, (currentPage - 1) * itemsPerPage + 1)} to {Math.min(reports.length, currentPage * itemsPerPage)} of {reports.length} reports
+              </p>
+              <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="bg-white hover:bg-gray-50 text-gray-700 border-gray-200"
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  >
+                      Previous
+                  </Button>
+                  <Button size="sm" className="bg-[#1C1C1E] hover:bg-gray-800 text-white">
+                      {currentPage}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="bg-white hover:bg-gray-50 text-gray-700 border-gray-200 shadow-sm"
+                    disabled={currentPage === totalPages || totalPages === 0}
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  >
+                      Next
+                  </Button>
+              </div>
+          </div>
+        )}
       </div>
     </div>
   );

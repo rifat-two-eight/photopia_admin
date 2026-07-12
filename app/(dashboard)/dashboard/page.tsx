@@ -24,14 +24,21 @@ export default function DashboardPage() {
   const [data, setData] = useState<DetailedDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [country, setCountry] = useState<string | null>(null);
+  const [city, setCity] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         console.log("Fetching dashboard stats...");
         setLoading(true);
+        
+        const params = new URLSearchParams();
+        if (country) params.append("country", country);
+        if (city) params.append("city", city);
+        
         const response = await axiosInstance.get<ApiResponse<DetailedDashboardStats>>(
-          "/dashboard/detailed-stats"
+          `/dashboard/detailed-stats${params.toString() ? `?${params.toString()}` : ''}`
         );
         console.log("API Response received:", response.data);
         if (response.data.success) {
@@ -49,9 +56,9 @@ export default function DashboardPage() {
     };
 
     fetchStats();
-  }, []);
+  }, [country, city]);
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="space-y-6 bg-white -my-3 p-5 lg:p-10 rounded-xl shadow-md min-h-screen">
         <SkeletonPlaceholder className="h-10 w-48 mb-4" />
@@ -97,7 +104,14 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="mb-1">
-          <LocationSelector />
+          <LocationSelector 
+            selectedCountry={country}
+            selectedCity={city}
+            onLocationChange={(country, city) => {
+              setCountry(country);
+              setCity(city);
+            }} 
+          />
         </div>
       </div>
 

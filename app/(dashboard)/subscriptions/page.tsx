@@ -9,29 +9,99 @@ import { SubscribersTable } from './components/SubscribersTable';
 import { EditPlanForm } from './components/EditPlanForm';
 import { SubscriptionStat, SubscriptionPlan, Subscriber, SubscriptionStatsApiResponse } from './types';
 import LocationSelector from "@/components/dashboard/LocationSelector";
+import { SubscriberViewModal } from './components/SubscriberViewModal';
+import Swal from 'sweetalert2';
+import { toast } from 'sonner';
 
 const SubscriptionsPage = () => {
   const [isEditingPlan, setIsEditingPlan] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statsData, setStatsData] = useState<SubscriptionStatsApiResponse | null>(null);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [country, setCountry] = useState<string | null>(null);
+  const [city, setCity] = useState<string | null>(null);
+  const [selectedSubscriber, setSelectedSubscriber] = useState<Subscriber | null>(null);
+
+  const fetchStats = React.useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const params = new URLSearchParams();
+      if (country) params.append("country", country);
+      if (city) params.append("city", city);
+      const queryString = params.toString() ? `?${params.toString()}` : '';
+
+      const [statsResponse, subscribersResponse] = await Promise.all([
+        axiosInstance.get(`/dashboard/subscription-stats${queryString}`),
+        axiosInstance.get(`/dashboard/subscribers${queryString}`)
+      ]);
+
+      if (statsResponse.data.success) {
+        setStatsData(statsResponse.data.data);
+      }
+      if (subscribersResponse.data.success) {
+        setSubscribers(subscribersResponse.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching subscription stats:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [country, city]);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setIsLoading(true);
-        const response = await axiosInstance.get('/dashboard/subscription-stats');
-        if (response.data.success) {
-          setStatsData(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching subscription stats:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchStats();
-  }, []);
+  }, [fetchStats]);
+
+  const handleCancelSubscription = async (subscriberId: string) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You are about to cancel this subscription.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#E7000B',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Yes, cancel it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await axiosInstance.delete(`/subscription/${subscriberId}/cancel`);
+        if (response.data.success) {
+          toast.success(response.data.message || 'Subscription cancelled successfully');
+          fetchStats(); // Refresh data
+        }
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || "Failed to cancel subscription");
+      }
+    }
+  };
+
+  const handleReactivateSubscription = async (subscriberId: string) => {
+    const result = await Swal.fire({
+      title: 'Reactivate Subscription?',
+      text: "This will reactivate the subscription.",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10B981',
+      cancelButtonColor: '#6B7280',
+      confirmButtonText: 'Yes, reactivate!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await axiosInstance.post(`/subscription/${subscriberId}/reactivate`);
+        if (response.data.success) {
+          toast.success(response.data.message || 'Subscription reactivated successfully');
+          fetchStats(); // Refresh data
+        }
+      } catch (error: unknown) {
+        const err = error as { response?: { data?: { message?: string } } };
+        toast.error(err.response?.data?.message || "Failed to reactivate subscription");
+      }
+    }
+  };
 
   const stats: SubscriptionStat[] = [
     {
@@ -73,14 +143,6 @@ const SubscriptionsPage = () => {
     }
   };
 
-  const subscribers: Subscriber[] = [
-    { id: '1', name: 'Sarah Johnson', email: 'sarah.j@example.com', plan: 'Premium', status: 'Active', startDate: '2024-06-15', nextBilling: '2025-01-15', totalRevenue: '€144' },
-    { id: '2', name: 'Michael Chen', email: 'michael.c@example.com', plan: 'Premium', status: 'Active', startDate: '2024-08-01', nextBilling: '2025-01-01', totalRevenue: '€495' },
-    { id: '3', name: 'Emma Wilson', email: 'emma.w@example.com', plan: 'Premium', status: 'Active', startDate: '2024-09-10', nextBilling: '2025-01-10', totalRevenue: '€64' },
-    { id: '4', name: 'James Rodriguez', email: 'james.r@example.com', plan: 'Premium', status: 'Cancelled', startDate: '2024-07-05', nextBilling: 'N/A', totalRevenue: '€594' },
-    { id: '5', name: 'Lisa Anderson', email: 'lisa.a@example.com', plan: 'Premium', status: 'Active', startDate: '2024-11-01', nextBilling: '2025-01-01', totalRevenue: '€32' },
-  ];
-
   if (isEditingPlan) {
     return (
       <EditPlanForm
@@ -95,7 +157,7 @@ const SubscriptionsPage = () => {
   }
 
   return (
-    <div className="space-y-6 bg-white -my-3 p-5 lg:p-10 rounded-xl shadow-md">
+    <div className="space-y-6 bg-white -my-3 p-5 lg:p-10 rounded-xl shadow-md relative">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 -mt-4">Subscription Management</h1>
@@ -104,7 +166,14 @@ const SubscriptionsPage = () => {
           </p>
         </div>
         <div className="mb-1">
-          <LocationSelector />
+          <LocationSelector 
+            selectedCountry={country}
+            selectedCity={city}
+            onLocationChange={(country, city) => {
+              setCountry(country);
+              setCity(city);
+            }} 
+          />
         </div>
       </div>
 
@@ -129,8 +198,20 @@ const SubscriptionsPage = () => {
           onSearchChange={setSearchQuery}
         />
 
-        <SubscribersTable subscribers={subscribers} />
+        <SubscribersTable 
+          subscribers={subscribers} 
+          onView={setSelectedSubscriber}
+          onCancel={handleCancelSubscription}
+          onReactivate={handleReactivateSubscription}
+        />
       </div>
+
+      {selectedSubscriber && (
+        <SubscriberViewModal 
+          subscriber={selectedSubscriber} 
+          onClose={() => setSelectedSubscriber(null)} 
+        />
+      )}
     </div>
   );
 };

@@ -367,10 +367,50 @@ export const ReportDetail: React.FC<ReportDetailProps> = ({ reportId, onBack }) 
             <CardContent className="p-6">
               <h3 className="text-base font-semibold text-gray-900 mb-4">Quick Actions</h3>
               <div className="flex gap-4 flex-col">
-                <Button className="w-full bg-[#1C1C1E] hover:bg-gray-800 text-white">
+                <Button 
+                    className="w-full bg-[#1C1C1E] hover:bg-gray-800 text-white"
+                    disabled={isProcessing}
+                    onClick={async () => {
+                        try {
+                            setIsProcessing(true);
+                            const response = await axiosInstance.post(`/chat/${report.reportedBy.id}`);
+                            if (response.data.success) {
+                                toast.success('Chat created successfully');
+                                window.location.href = '/messages';
+                            }
+                        } catch (err: unknown) {
+                            const error = err as { response?: { data?: { message?: string } } };
+                            toast.error(error.response?.data?.message || 'Failed to initiate chat');
+                        } finally {
+                            setIsProcessing(false);
+                        }
+                    }}
+                >
                   Contact Reporter
                 </Button>
-                <Button className="w-full bg-white border border-gray-600 hover:bg-gray-50 text-black">
+                <Button 
+                    className="w-full bg-white border border-gray-600 hover:bg-gray-50 text-black"
+                    disabled={isProcessing}
+                    onClick={async () => {
+                        if (!report.reportedUser.id) {
+                            toast.error('Unknown user cannot be contacted');
+                            return;
+                        }
+                        try {
+                            setIsProcessing(true);
+                            const response = await axiosInstance.post(`/chat/${report.reportedUser.id}`);
+                            if (response.data.success) {
+                                toast.success('Chat created successfully');
+                                window.location.href = '/messages';
+                            }
+                        } catch (err: unknown) {
+                            const error = err as { response?: { data?: { message?: string } } };
+                            toast.error(error.response?.data?.message || 'Failed to initiate chat');
+                        } finally {
+                            setIsProcessing(false);
+                        }
+                    }}
+                >
                   Contact Reported User
                 </Button>
               </div>

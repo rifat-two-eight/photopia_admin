@@ -8,11 +8,15 @@ import axiosInstance from '@/lib/axios';
 import { toast } from 'sonner';
 import Image from 'next/image';
 
-const getImageUrl = (path: string) => {
+const getImageUrl = (path: string | null | undefined) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.replace('/api/v1', '') || '';
-  return `${baseUrl}${path}`;
+  let formattedPath = path.startsWith('/') ? path : `/${path}`;
+  if (!formattedPath.startsWith('/uploads')) {
+    formattedPath = `/uploads${formattedPath}`;
+  }
+  return `${baseUrl}${formattedPath}`;
 };
 
 interface ChatWindowProps {
@@ -27,6 +31,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
   const [isSending, setIsSending] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const participant = chat.participants[0];
@@ -50,8 +55,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      if (file.type.startsWith('image/')) {
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+      } else {
+        setPreviewUrl(null); // No preview for documents
+      }
     }
   };
 
@@ -74,7 +83,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
         formData.append('text', newMessage);
       }
       if (selectedFile) {
-        formData.append('images', selectedFile);
+        if (selectedFile.type.startsWith('image/')) {
+          formData.append('images', selectedFile);
+        } else {
+          formData.append('documents', selectedFile);
+        }
       }
 
       const response = await axiosInstance.post<SendMessageResponse>('/message', formData, {
@@ -119,13 +132,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
         </div>
 
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600">
-            <Phone className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600">
-            <Info className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600">
+          <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-600" onClick={() => toast.info('More options not available yet')}>
             <MoreVertical className="w-4 h-4" />
           </Button>
         </div>
@@ -165,14 +172,26 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
                             alt="Sent image"
                             width={300}
                             height={300}
-                            className="rounded-lg max-w-full h-auto object-cover max-h-[300px]"
+                            unoptimized
+                            className="rounded-lg max-w-full h-auto object-cover max-h-[300px] cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => setFullScreenImage(getImageUrl(msg.image))}
                             onError={(e) => {
-                              if (msg.image) {
-                                console.error('Image load failed:', getImageUrl(msg.image));
-                              }
                               (e.target as HTMLImageElement).style.display = 'none';
                             }}
                           />
+                        </div>
+                      )}
+                      {msg.file && (
+                        <div className="mb-2">
+                          <a 
+                            href={getImageUrl(msg.file)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 p-2 bg-black/10 rounded-lg hover:bg-black/20 transition-colors"
+                          >
+                            <Paperclip className="w-4 h-4" />
+                            <span className="text-sm underline">View Document</span>
+                          </a>
                         </div>
                       )}
                       {msg.text}
@@ -193,20 +212,57 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
         )}
       </div>
 
-      {/* Image Preview */}
-      {previewUrl && (
+      {/* File/Image Preview */}
+      {selectedFile && (
         <div className="px-4 py-2 border-t border-gray-100 bg-white flex items-center gap-4">
-          <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+          {previewUrl ? (
+            <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+              <button
+                onClick={removeFile}
+                className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ) : (
+            <div className="relative flex items-center justify-center w-20 h-20 bg-gray-100 rounded-lg border border-gray-200">
+              <Paperclip className="w-8 h-8 text-gray-400" />
+              <button
+                onClick={removeFile}
+                className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+          <p className="text-xs text-gray-500 truncate max-w-[200px]">{selectedFile.name}</p>
+        </div>
+      )}
+
+      {/* Full Screen Image Modal */}
+      {fullScreenImage && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm cursor-zoom-out"
+          onClick={() => setFullScreenImage(null)}
+        >
+          <div className="relative max-w-[90vw] max-h-[90vh] flex items-center justify-center">
             <button
-              onClick={removeFile}
-              className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70 transition-colors"
+              onClick={() => setFullScreenImage(null)}
+              className="absolute top-4 right-4 md:-top-10 md:-right-10 text-white hover:text-gray-300 p-2 z-50 bg-black/50 md:bg-transparent rounded-full"
             >
-              <X className="w-3 h-3" />
+              <X className="w-8 h-8 md:w-8 md:h-8" />
             </button>
+            <Image
+              src={fullScreenImage}
+              alt="Full screen view"
+              width={1200}
+              height={1200}
+              unoptimized
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            />
           </div>
-          <p className="text-xs text-gray-500 truncate max-w-[200px]">{selectedFile?.name}</p>
         </div>
       )}
 
@@ -216,7 +272,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept="image/*"
+          accept="image/*,application/pdf,.doc,.docx"
           className="hidden"
         />
         <Button
