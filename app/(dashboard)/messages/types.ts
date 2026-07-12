@@ -11,6 +11,7 @@ export interface Chat {
     status: boolean;
     updatedAt: string;
     unreadCount: number;
+    lastMessage?: Message;
 }
 
 export interface Message {
@@ -19,6 +20,7 @@ export interface Message {
     sender: string;
     text: string;
     image: string | null;
+    file: string | null;
     seen: boolean;
     createdAt: string;
     updatedAt: string;

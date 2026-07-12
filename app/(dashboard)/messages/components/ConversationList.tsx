@@ -8,7 +8,11 @@ const getImageUrl = (path: string) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.replace('/api/v1', '') || '';
-  return `${baseUrl}${path}`;
+  let formattedPath = path.startsWith('/') ? path : `/${path}`;
+  if (!formattedPath.startsWith('/uploads')) {
+    formattedPath = `/uploads${formattedPath}`;
+  }
+  return `${baseUrl}${formattedPath}`;
 };
 
 interface ConversationListProps {
@@ -76,8 +80,11 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                     </span>
                   </div>
                   <div className="flex justify-between items-start">
-                    <p className="text-sm text-gray-600 truncate pr-2">
-                      {chat.unreadCount > 0 ? `${chat.unreadCount} unread messages` : 'No new messages'}
+                    <p className="text-sm text-gray-600 truncate pr-2 flex-1">
+                      {/* Show unread count if it exists, otherwise show last message, otherwise fallback */}
+                      {chat.unreadCount > 0 
+                        ? `${chat.unreadCount} unread messages` 
+                        : chat.lastMessage?.text || (chat.lastMessage?.image ? 'Sent an image' : (chat.lastMessage?.file ? 'Sent a file' : 'No new messages'))}
                     </p>
                     {chat.unreadCount > 0 && (
                       <span className="bg-black text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center">

@@ -13,7 +13,7 @@ const NotificationsPage = () => {
 
     const fetchNotifications = React.useCallback(async () => {
         try {
-            const response = await axiosInstance.get("/notifications");
+            const response = await axiosInstance.get("/notifications/my");
             if (response.data.success) {
                 const mappedData: NotificationItem[] = response.data.data.map((item: { _id: string; title: string; content: string; createdAt: string; type: string; isRead: boolean }) => ({
                     id: item._id,
@@ -32,10 +32,15 @@ const NotificationsPage = () => {
     }, []);
 
     useEffect(() => {
-        setTimeout(() => {
+        setTimeout(async () => {
             fetchNotifications();
             // Reset unread count when visiting the page
             setUnreadNotifications(0);
+            try {
+                await axiosInstance.patch("/notifications/read-all");
+            } catch (error) {
+                console.error("Failed to mark notifications as read", error);
+            }
         }, 0);
     }, [fetchNotifications, setUnreadNotifications]);
 

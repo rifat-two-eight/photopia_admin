@@ -12,7 +12,11 @@ const getImageUrl = (path: string) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.replace('/api/v1', '') || '';
-  return `${baseUrl}${path}`;
+  let formattedPath = path.startsWith('/') ? path : `/${path}`;
+  if (!formattedPath.startsWith('/uploads')) {
+    formattedPath = `/uploads${formattedPath}`;
+  }
+  return `${baseUrl}${formattedPath}`;
 };
 
 interface ChatWindowProps {
@@ -50,8 +54,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      if (file.type.startsWith('image/')) {
+        const url = URL.createObjectURL(file);
+        setPreviewUrl(url);
+      } else {
+        setPreviewUrl(null); // No preview for documents
+      }
     }
   };
 
@@ -74,7 +82,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
         formData.append('text', newMessage);
       }
       if (selectedFile) {
-        formData.append('images', selectedFile);
+        if (selectedFile.type.startsWith('image/')) {
+          formData.append('images', selectedFile);
+        } else {
+          formData.append('documents', selectedFile);
+        }
       }
 
       const response = await axiosInstance.post<SendMessageResponse>('/message', formData, {
@@ -165,14 +177,25 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
                             alt="Sent image"
                             width={300}
                             height={300}
+                            unoptimized
                             className="rounded-lg max-w-full h-auto object-cover max-h-[300px]"
                             onError={(e) => {
-                              if (msg.image) {
-                                console.error('Image load failed:', getImageUrl(msg.image));
-                              }
                               (e.target as HTMLImageElement).style.display = 'none';
                             }}
                           />
+                        </div>
+                      )}
+                      {msg.file && (
+                        <div className="mb-2">
+                          <a 
+                            href={getImageUrl(msg.file)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 p-2 bg-black/10 rounded-lg hover:bg-black/20 transition-colors"
+                          >
+                            <Paperclip className="w-4 h-4" />
+                            <span className="text-sm underline">View Document</span>
+                          </a>
                         </div>
                       )}
                       {msg.text}
@@ -216,7 +239,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, messages, isLoadin
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept="image/*"
+          accept="image/*,application/pdf"
           className="hidden"
         />
         <Button

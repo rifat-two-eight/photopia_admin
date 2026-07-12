@@ -18,7 +18,11 @@ const getImageUrl = (path: string) => {
   if (!path) return '';
   if (path.startsWith('http')) return path;
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL?.replace('/api/v1', '') || '';
-  return `${baseUrl}${path}`;
+  let formattedPath = path.startsWith('/') ? path : `/${path}`;
+  if (!formattedPath.startsWith('/uploads')) {
+    formattedPath = `/uploads${formattedPath}`;
+  }
+  return `${baseUrl}${formattedPath}`;
 };
 
 const getRoleBadgeClass = (role: string) => {
