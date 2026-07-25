@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import {
   useCreateProjectIdeaMutation,
   useUpdateProjectIdeaMutation,
+  useGetIdeaCategoriesQuery,
   useGetIdeaSubcategoriesQuery,
   useGetProjectIdeasQuery
 } from '@/lib/store/api/projectIdeasApi';
@@ -16,17 +17,25 @@ interface IdeaFormModalProps {
   editingIdeaId: string | null;
 }
 
+const THEMES = [
+  { id: 'PHOTOGRAPHY', name: 'Photography' },
+  { id: 'VIDEOGRAPHY', name: 'Videography' },
+  { id: 'EDITING AND POST-PRODUCTION', name: 'Editing and Post Production' },
+];
+
 export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFormModalProps) {
   const [title, setTitle] = useState('');
   const [linkText, setLinkText] = useState('');
   const [selectedTheme, setSelectedTheme] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
   const [subCategoryId, setSubCategoryId] = useState('');
   const [order, setOrder] = useState<number>(0);
 
   const [createIdea, { isLoading: isCreating }] = useCreateProjectIdeaMutation();
   const [updateIdea, { isLoading: isUpdating }] = useUpdateProjectIdeaMutation();
   
-  const { data: subcategoriesData, isLoading: isLoadingSubcategories } = useGetIdeaSubcategoriesQuery(undefined, { skip: !isOpen });
+  const { data: categoriesData, isLoading: isLoadingCategories } = useGetIdeaCategoriesQuery(undefined, { skip: !isOpen });
+  const { data: subcategoriesData, isLoading: isLoadingSubcategories } = useGetIdeaSubcategoriesQuery(selectedCategoryId, { skip: !isOpen || !selectedCategoryId });
 
   // Fetch all to find the editing one (ideally we should have a getById or use the cached list)
   const { data: projectIdeasData } = useGetProjectIdeasQuery(
@@ -42,7 +51,13 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
           setTimeout(() => {
             setTitle(idea.title);
             setLinkText(idea.linkText);
+            
+            const parentId = typeof idea.subCategoryId?.parent === 'object' && idea.subCategoryId?.parent !== null
+              ? idea.subCategoryId.parent._id
+              : idea.subCategoryId?.parent || '';
+
             setSelectedTheme(idea.subCategoryId?.theme || '');
+            setSelectedCategoryId(parentId);
             setSubCategoryId(idea.subCategoryId?._id || '');
             setOrder(idea.order);
           }, 0);
@@ -53,6 +68,7 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
           setTitle('');
           setLinkText('');
           setSelectedTheme('');
+          setSelectedCategoryId('');
           setSubCategoryId('');
           setOrder(0);
         }, 0);
@@ -91,16 +107,23 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
 
   const isSubmitting = isCreating || isUpdating;
   
-  // Extract all subcategories
-  const allSubcategories = subcategoriesData?.data?.data || [];
-  
-  // Extract unique themes to act as "Categories"
-  const themes = Array.from(new Set(allSubcategories.map(sub => sub.theme || 'OTHER')));
-  
-  // Filter subcategories by the selected theme
-  const filteredSubcategories = selectedTheme 
-    ? allSubcategories.filter(sub => (sub.theme || 'OTHER') === selectedTheme)
+  // Extract all categories
+  const allCategories = categoriesData?.data?.data || [];
+  const filteredCategories = selectedTheme 
+    ? allCategories.filter(cat => cat.theme === selectedTheme)
     : [];
+
+  // Extract filtered subcategories returned directly by the category-scoped query
+  const filteredSubcategories = subcategoriesData?.data?.data || [];
+
+  // Diagnostic logging to debug cascading dropdowns
+  console.log('Cascading Dropdowns State:', {
+    selectedTheme,
+    selectedCategoryId,
+    allCategoriesCount: allCategories.length,
+    filteredCategoriesCount: filteredCategories.length,
+    filteredSubcategoriesCount: filteredSubcategories.length,
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -150,6 +173,29 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
             />
           </div>
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">
+              Theme <span className="text-red-500">*</span>
+            </label>
+            <select
+              required
+              value={selectedTheme}
+              onChange={(e) => {
+                setSelectedTheme(e.target.value);
+                setSelectedCategoryId('');
+                setSubCategoryId('');
+              }}
+              className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none bg-white"
+            >
+              <option value="" disabled>Select Theme</option>
+              {THEMES.map((theme) => (
+                <option key={theme.id} value={theme.id}>
+                  {theme.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
@@ -157,18 +203,18 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
               </label>
               <select
                 required
-                value={selectedTheme}
+                value={selectedCategoryId}
                 onChange={(e) => {
-                  setSelectedTheme(e.target.value);
-                  setSubCategoryId(''); // Clear subcategory when theme changes
+                  setSelectedCategoryId(e.target.value);
+                  setSubCategoryId('');
                 }}
-                disabled={isLoadingSubcategories}
+                disabled={!selectedTheme || isLoadingCategories}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none bg-white disabled:bg-gray-50"
               >
                 <option value="" disabled>Select Category</option>
-                {themes.map((theme) => (
-                  <option key={theme} value={theme}>
-                    {theme}
+                {filteredCategories.map((cat) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
                   </option>
                 ))}
               </select>
@@ -182,7 +228,7 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
                 required
                 value={subCategoryId}
                 onChange={(e) => setSubCategoryId(e.target.value)}
-                disabled={!selectedTheme || isLoadingSubcategories}
+                disabled={!selectedCategoryId || isLoadingSubcategories}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none bg-white disabled:bg-gray-50 disabled:text-gray-400"
               >
                 <option value="" disabled>Select Subcategory</option>

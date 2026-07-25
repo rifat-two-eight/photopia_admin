@@ -30,6 +30,7 @@ export interface ProjectIdea {
     _id: string;
     name: string;
     theme: string;
+    parent?: string | { _id: string; name: string };
   };
   order: number;
   createdAt: string;
@@ -79,8 +80,13 @@ export const projectIdeasApi = baseApi.injectEndpoints({
       providesTags: ['ProjectIdeas'],
     }),
     
-    getIdeaSubcategories: builder.query<SubcategoryResponse, void>({
-      query: () => '/category?type=subcategory&isActive=true&limit=100',
+    getIdeaCategories: builder.query<SubcategoryResponse, void>({
+      query: () => '/category?type=category&isActive=true&limit=100',
+      providesTags: ['Categories'],
+    }),
+
+    getIdeaSubcategories: builder.query<SubcategoryResponse, string | void>({
+      query: (parentId) => `/category?type=subcategory&isActive=true&limit=100${parentId ? `&parent=${parentId}` : ''}`,
       providesTags: ['Categories'],
     }),
 
@@ -114,6 +120,7 @@ export const projectIdeasApi = baseApi.injectEndpoints({
 
 export const {
   useGetProjectIdeasQuery,
+  useGetIdeaCategoriesQuery,
   useGetIdeaSubcategoriesQuery,
   useCreateProjectIdeaMutation,
   useUpdateProjectIdeaMutation,
