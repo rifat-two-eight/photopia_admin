@@ -5,10 +5,11 @@ export interface Activity {
 }
 
 export interface Payment {
+    serviceName?: string;
     service?: string;
     date?: string;
-    amount?: string;
-    // The current API returns an empty array, so we keep it flexible
+    amount?: number | string;
+    currency?: string;
 }
 
 export interface User {

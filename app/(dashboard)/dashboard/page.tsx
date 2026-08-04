@@ -136,7 +136,7 @@ export default function DashboardPage() {
       {/* Bottom Stats Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MarketplaceHealth data={data?.marketplaceHealth} />
-        <MostViewedPages />
+        <MostViewedPages data={data?.mostViewedPages} />
       </div>
 
       {/* Quick Actions */}

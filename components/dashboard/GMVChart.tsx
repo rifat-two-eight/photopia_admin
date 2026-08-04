@@ -18,13 +18,18 @@ interface GMVChartProps {
 
 export default function GMVChart({ data }: GMVChartProps) {
   const hasData = data && data.length > 0;
-  const chartData = hasData ? data : [];
+  const chartData = hasData
+    ? data.map((item) => ({
+        month: item.month,
+        value: item.amount ?? item.value ?? 0,
+      }))
+    : [];
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base font-medium text-gray-900">
-          GMV Trending {!hasData && "(No data)"}
+          GMV Trending
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -81,12 +86,10 @@ export default function GMVChart({ data }: GMVChartProps) {
           </ResponsiveContainer>
         ) : (
           <div className="flex items-center justify-center h-[300px] border border-dashed border-gray-200 rounded-lg bg-gray-50/50">
-            <p className="text-gray-400 text-sm font-medium">Coming soon</p>
+            <p className="text-gray-400 text-sm font-medium">No GMV data yet</p>
           </div>
         )}
       </CardContent>
     </Card>
   );
 }
-
-

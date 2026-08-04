@@ -28,14 +28,16 @@ export interface SubscriptionPlan {
 
 export interface Subscriber {
     id: string;
+    userId?: string;
     name: string;
     email: string;
-    plan: 'Premium' | 'Basic';
-    status: SubscriptionStatus;
+    plan: string;
+    status: SubscriptionStatus | string;
     startDate: string;
     nextBilling: string;
-    totalRevenue: string;
+    totalRevenue: string | number;
     avatar?: string;
+    profile?: string;
 }
 
 export interface SubscriptionStatsApiResponse {
@@ -64,6 +66,7 @@ export interface SubscriptionStatsApiResponse {
         noSubscription: number;
     };
     activePlan: {
+        id?: string;
         name: string;
         price: number;
         features: string[];
