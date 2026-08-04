@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+import axiosInstance from "@/lib/axios";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -18,6 +19,14 @@ export default function ResetPasswordPage() {
     newPassword: "",
     confirmPassword: "",
   });
+
+  useEffect(() => {
+    const resetToken = localStorage.getItem("resetToken");
+    if (!resetToken) {
+      toast.error("Please verify OTP first.");
+      router.replace("/forgot");
+    }
+  }, [router]);
 
   const handleSubmit = async () => {
     if (formData.newPassword !== formData.confirmPassword) {
@@ -30,18 +39,40 @@ export default function ResetPasswordPage() {
       return;
     }
 
+    const resetToken = localStorage.getItem("resetToken");
+    if (!resetToken) {
+      toast.error("Reset session expired. Please try again.");
+      router.push("/forgot");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await axiosInstance.post(
+        "/auth/reset-password",
+        {
+          newPassword: formData.newPassword,
+          confirmPassword: formData.confirmPassword,
+        },
+        {
+          headers: {
+            Authorization: resetToken,
+          },
+        }
+      );
 
-      toast.success("Password reset successfully!");
-      
-      setTimeout(() => {
+      if (response.data.success) {
+        localStorage.removeItem("resetToken");
+        localStorage.removeItem("resetEmail");
+        toast.success(response.data.message || "Password reset successfully!");
         router.push("/login");
-      }, 1000);
-    } catch {
-      toast.error("Failed to reset password. Please try again.");
+      } else {
+        toast.error(response.data.message || "Failed to reset password.");
+      }
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to reset password. Please try again.");
     } finally {
       setIsLoading(false);
     }

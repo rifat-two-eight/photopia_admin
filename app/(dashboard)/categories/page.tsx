@@ -56,9 +56,10 @@ const CategoryManagement = () => {
     try {
       const response = await axiosInstance.get<CategoryStatsResponse>('/dashboard/category-stats');
       if (response.data.success) {
-        const { totalCategories, totalSubCategories } = response.data.data;
+        const { totalCategories, totalSubCategories, categoriesByTheme, totalThemes } = response.data.data;
+        const themeCount = totalThemes ?? categoriesByTheme?.length ?? 0;
         setStats([
-          { label: 'Total Themes', value: '3' },
+          { label: 'Total Themes', value: themeCount.toLocaleString() },
           { label: 'Total Categories', value: totalCategories.toLocaleString() },
           { label: 'Total Subcategories', value: totalSubCategories.toLocaleString() }
         ]);
@@ -268,15 +269,24 @@ const CategoryManagement = () => {
     }
   };
 
-  const handleToggleStatus = async (id: string) => {
+  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
     try {
-      const response = await axiosInstance.patch(`/category/${id}/toggle-status`);
+      const response = await axiosInstance.patch(`/category/${id}`, {
+        isActive: !currentStatus,
+      });
       if (response.data.success) {
         toast.success("Status updated");
         fetchCategories();
+        // Refresh subcategory lists that may include this id
+        Object.keys(subcategories).forEach((parentId) => {
+          if (subcategories[parentId].some((s) => s._id === id)) {
+            fetchSubcategories(parentId);
+          }
+        });
       }
-    } catch {
-      toast.error("Failed to update status");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Failed to update status");
     }
   };
 

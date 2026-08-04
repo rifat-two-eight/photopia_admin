@@ -198,10 +198,14 @@ export const UserDetail: React.FC<UserDetailProps> = ({
                 {recentPayments.map((payment, index) => (
                   <div key={index} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors">
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">{payment.service || 'Unknown Service'}</p>
+                      <p className="text-sm font-semibold text-gray-900">{payment.serviceName || payment.service || 'Unknown Service'}</p>
                       <p className="text-xs text-gray-500 mt-1">{payment.date ? new Date(payment.date).toLocaleDateString() : 'No date'}</p>
                     </div>
-                    <p className="text-sm font-bold text-emerald-600">{payment.amount || '€0.00'}</p>
+                    <p className="text-sm font-bold text-emerald-600">
+                      {typeof payment.amount === 'number'
+                        ? `${payment.currency === 'EUR' || !payment.currency ? '€' : payment.currency + ' '}${payment.amount.toLocaleString()}`
+                        : payment.amount || '€0.00'}
+                    </p>
                   </div>
                 ))}
               </div>

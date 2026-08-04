@@ -14,12 +14,24 @@ const MessagesPage = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoadingChats, setIsLoadingChats] = useState(true);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const { socket, userId } = useSocket();
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   const fetchChats = useCallback(async () => {
     try {
       setIsLoadingChats(true);
-      const response = await axiosInstance.get<ChatResponse>('/chat');
+      const params = debouncedSearch
+        ? `?search=${encodeURIComponent(debouncedSearch)}`
+        : '';
+      const response = await axiosInstance.get<ChatResponse>(`/chat${params}`);
       if (response.data.success) {
         setChats(response.data.data.chats);
         // We only set activeId initially. If activeId changes, we don't need to re-fetch chats.
@@ -36,7 +48,7 @@ const MessagesPage = () => {
     } finally {
       setIsLoadingChats(false);
     }
-  }, []);
+  }, [debouncedSearch]);
 
   useEffect(() => {
     if (!socket || !userId) return;
@@ -126,6 +138,8 @@ const MessagesPage = () => {
           activeId={activeId || ''}
           onSelect={setActiveId}
           isLoading={isLoadingChats}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
         />
       </div>
 

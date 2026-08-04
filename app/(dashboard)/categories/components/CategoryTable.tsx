@@ -16,7 +16,7 @@ interface CategoryTableProps {
   subcategories: Record<string, Category[]>;
   onEdit: (category: Category) => void;
   onDelete: (id: string) => void;
-  onToggleStatus: (id: string) => void;
+  onToggleStatus: (id: string, currentStatus: boolean) => void;
   onFetchSubcategories: (categoryId: string) => void;
   onAddSubcategory: (category: Category) => void;
 }
@@ -111,7 +111,7 @@ export const CategoryTable = ({
                     <td className="px-6 h-16">
                       <Badge
                         variant="secondary"
-                        onClick={() => onToggleStatus(category._id)}
+                        onClick={() => onToggleStatus(category._id, category.isActive)}
                         className={`font-normal cursor-pointer transition-colors ${getStatusBadgeClass(category.isActive)}`}
                       >
                         {category.isActive ? 'Active' : 'Inactive'}

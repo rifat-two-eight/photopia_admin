@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 const ModerationPage = () => {
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
   const [statsData, setStatsData] = useState<ModerationStatsApiResponse | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [reports, setReports] = useState<ModerationReportItem[]>([]);
@@ -19,8 +21,27 @@ const ModerationPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  const totalPages = Math.ceil(reports.length / itemsPerPage);
-  const currentReports = reports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const filteredReports = reports.filter((report) => {
+    const q = searchQuery.trim().toLowerCase();
+    const matchesSearch = !q || (
+      report.title?.toLowerCase().includes(q) ||
+      report.description?.toLowerCase().includes(q) ||
+      report.reportedUser?.name?.toLowerCase().includes(q) ||
+      report.reportedBy?.name?.toLowerCase().includes(q) ||
+      String(report.status || '').toLowerCase().includes(q) ||
+      String(report.priority || '').toLowerCase().includes(q)
+    );
+
+    const statusValue = String(report.status || '').toLowerCase().replace(/\s+/g, '_');
+    const priorityValue = String(report.priority || '').toLowerCase();
+    const matchesStatus = statusFilter === 'all' || statusValue === statusFilter || statusValue.includes(statusFilter);
+    const matchesPriority = priorityFilter === 'all' || priorityValue === priorityFilter;
+
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  const totalPages = Math.ceil(filteredReports.length / itemsPerPage) || 1;
+  const currentReports = filteredReports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,7 +99,20 @@ const ModerationPage = () => {
       <div className="space-y-4">
         <ModerationFilters 
           searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          statusFilter={statusFilter}
+          onStatusFilterChange={(value) => {
+            setStatusFilter(value);
+            setCurrentPage(1);
+          }}
+          priorityFilter={priorityFilter}
+          onPriorityFilterChange={(value) => {
+            setPriorityFilter(value);
+            setCurrentPage(1);
+          }}
         />
 
         <ReportList 
@@ -88,10 +122,10 @@ const ModerationPage = () => {
         />
 
         {/* Pagination */}
-        {reports.length > 0 && (
+        {filteredReports.length > 0 && (
           <div className="flex items-center justify-between pt-2">
               <p className="text-sm text-gray-500">
-                Showing {Math.min(reports.length, (currentPage - 1) * itemsPerPage + 1)} to {Math.min(reports.length, currentPage * itemsPerPage)} of {reports.length} reports
+                Showing {Math.min(filteredReports.length, (currentPage - 1) * itemsPerPage + 1)} to {Math.min(filteredReports.length, currentPage * itemsPerPage)} of {filteredReports.length} reports
               </p>
               <div className="flex gap-2">
                   <Button 

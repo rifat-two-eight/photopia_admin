@@ -1,20 +1,20 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
+  ProjectIdea,
   useCreateProjectIdeaMutation,
   useUpdateProjectIdeaMutation,
   useGetIdeaCategoriesQuery,
   useGetIdeaSubcategoriesQuery,
-  useGetProjectIdeasQuery
 } from '@/lib/store/api/projectIdeasApi';
 
 interface IdeaFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  editingIdeaId: string | null;
+  editingIdea: ProjectIdea | null;
 }
 
 const THEMES = [
@@ -23,7 +23,48 @@ const THEMES = [
   { id: 'EDITING AND POST-PRODUCTION', name: 'Editing and Post Production' },
 ];
 
-export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFormModalProps) {
+/** Align DB theme variants with dashboard theme ids */
+function normalizeTheme(theme?: string | null): string {
+  if (!theme) return '';
+  const upper = theme.trim().toUpperCase();
+  if (upper === 'PHOTOGRAPHY' || upper === 'PHOTO') return 'PHOTOGRAPHY';
+  if (upper === 'VIDEOGRAPHY' || upper === 'VIDEO') return 'VIDEOGRAPHY';
+  if (
+    upper === 'EDITING AND POST-PRODUCTION' ||
+    upper === 'EDITING AND POST PRODUCTION' ||
+    upper === 'EDITING' ||
+    upper === 'POST-PRODUCTION' ||
+    upper === 'POST PRODUCTION'
+  ) {
+    return 'EDITING AND POST-PRODUCTION';
+  }
+  return theme.trim();
+}
+
+function extractParentId(idea: ProjectIdea): string {
+  const parent = idea.subCategoryId?.parent;
+  if (!parent) return '';
+  if (typeof parent === 'object' && parent !== null) {
+    return parent._id || '';
+  }
+  return String(parent);
+}
+
+function extractTheme(idea: ProjectIdea): string {
+  const fromSub = normalizeTheme(idea.subCategoryId?.theme);
+  if (fromSub) return fromSub;
+  const parent = idea.subCategoryId?.parent;
+  if (typeof parent === 'object' && parent !== null) {
+    return normalizeTheme((parent as { theme?: string }).theme);
+  }
+  return '';
+}
+
+export default function IdeaFormModal({
+  isOpen,
+  onClose,
+  editingIdea,
+}: IdeaFormModalProps) {
   const [title, setTitle] = useState('');
   const [linkText, setLinkText] = useState('');
   const [selectedTheme, setSelectedTheme] = useState('');
@@ -33,104 +74,139 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
 
   const [createIdea, { isLoading: isCreating }] = useCreateProjectIdeaMutation();
   const [updateIdea, { isLoading: isUpdating }] = useUpdateProjectIdeaMutation();
-  
-  const { data: categoriesData, isLoading: isLoadingCategories } = useGetIdeaCategoriesQuery(undefined, { skip: !isOpen });
-  const { data: subcategoriesData, isLoading: isLoadingSubcategories } = useGetIdeaSubcategoriesQuery(selectedCategoryId, { skip: !isOpen || !selectedCategoryId });
 
-  // Fetch all to find the editing one (ideally we should have a getById or use the cached list)
-  const { data: projectIdeasData } = useGetProjectIdeasQuery(
-    { limit: 100 }, 
-    { skip: !isOpen || !editingIdeaId }
-  );
+  const { data: categoriesData, isLoading: isLoadingCategories } =
+    useGetIdeaCategoriesQuery(undefined, { skip: !isOpen });
+  const { data: subcategoriesData, isLoading: isLoadingSubcategories } =
+    useGetIdeaSubcategoriesQuery(selectedCategoryId, {
+      skip: !isOpen || !selectedCategoryId,
+    });
 
   useEffect(() => {
-    if (isOpen) {
-      if (editingIdeaId && projectIdeasData?.data?.data) {
-        const idea = projectIdeasData.data.data.find(i => i._id === editingIdeaId);
-        if (idea) {
-          setTimeout(() => {
-            setTitle(idea.title);
-            setLinkText(idea.linkText);
-            
-            const parentId = typeof idea.subCategoryId?.parent === 'object' && idea.subCategoryId?.parent !== null
-              ? idea.subCategoryId.parent._id
-              : idea.subCategoryId?.parent || '';
+    if (!isOpen) return;
 
-            setSelectedTheme(idea.subCategoryId?.theme || '');
-            setSelectedCategoryId(parentId);
-            setSubCategoryId(idea.subCategoryId?._id || '');
-            setOrder(idea.order);
-          }, 0);
-        }
-      } else {
-        // Reset form
-        setTimeout(() => {
-          setTitle('');
-          setLinkText('');
-          setSelectedTheme('');
-          setSelectedCategoryId('');
-          setSubCategoryId('');
-          setOrder(0);
-        }, 0);
-      }
+    if (editingIdea) {
+      setTitle(editingIdea.title || '');
+      setLinkText(editingIdea.linkText || '');
+      setSelectedTheme(extractTheme(editingIdea));
+      setSelectedCategoryId(extractParentId(editingIdea));
+      setSubCategoryId(editingIdea.subCategoryId?._id || '');
+      setOrder(editingIdea.order ?? 0);
+    } else {
+      setTitle('');
+      setLinkText('');
+      setSelectedTheme('');
+      setSelectedCategoryId('');
+      setSubCategoryId('');
+      setOrder(0);
     }
-  }, [isOpen, editingIdeaId, projectIdeasData]);
+  }, [isOpen, editingIdea]);
+
+  const allCategories = categoriesData?.data?.data || [];
+  const filteredCategories = useMemo(() => {
+    if (!selectedTheme) return [];
+    const list = allCategories.filter(
+      (cat) => normalizeTheme(cat.theme) === selectedTheme,
+    );
+    // Keep current parent category selectable while editing (inactive / theme drift)
+    const parent = editingIdea?.subCategoryId?.parent;
+    if (selectedCategoryId && !list.some((c) => c._id === selectedCategoryId)) {
+      const parentName =
+        typeof parent === 'object' && parent !== null
+          ? parent.name
+          : 'Current category';
+      list.unshift({
+        _id: selectedCategoryId,
+        name: parentName || 'Current category',
+        theme: selectedTheme,
+        parent: '',
+        type: 'category',
+      });
+    }
+    return list;
+  }, [allCategories, selectedTheme, selectedCategoryId, editingIdea]);
+
+  const filteredSubcategories = subcategoriesData?.data?.data || [];
+
+  // Keep current subcategory visible even if API list is briefly empty/stale
+  const subcategoryOptions = useMemo(() => {
+    const list = [...filteredSubcategories];
+    const currentId = editingIdea?.subCategoryId?._id;
+    const currentName = editingIdea?.subCategoryId?.name;
+    if (
+      currentId &&
+      subCategoryId === currentId &&
+      !list.some((s) => s._id === currentId)
+    ) {
+      list.unshift({
+        _id: currentId,
+        name: currentName || 'Current subcategory',
+        theme: editingIdea?.subCategoryId?.theme || selectedTheme,
+        parent: selectedCategoryId,
+        type: 'subcategory',
+      });
+    }
+    return list;
+  }, [
+    filteredSubcategories,
+    editingIdea,
+    subCategoryId,
+    selectedCategoryId,
+    selectedTheme,
+  ]);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title || !linkText || !subCategoryId) {
-      toast.error('Please fill in all required fields');
+    if (!title.trim() || !linkText.trim() || !subCategoryId) {
+      toast.error('Please fill in theme, category, subcategory and required fields');
+      return;
+    }
+    if (!selectedTheme || !selectedCategoryId) {
+      toast.error('Please select theme and category');
       return;
     }
 
     try {
-      if (editingIdeaId) {
+      if (editingIdea?._id) {
         await updateIdea({
-          id: editingIdeaId,
-          body: { title, linkText, subCategoryId, order }
+          id: editingIdea._id,
+          body: {
+            title: title.trim(),
+            linkText: linkText.trim(),
+            subCategoryId,
+            order,
+          },
         }).unwrap();
-        toast.success('Project idea updated successfully');
+        toast.success('Project idea updated — home page will use the new subcategory');
       } else {
         await createIdea({
-          title, linkText, subCategoryId, order
+          title: title.trim(),
+          linkText: linkText.trim(),
+          subCategoryId,
+          order,
         }).unwrap();
         toast.success('Project idea created successfully');
       }
       onClose();
-    } catch {
-      toast.error('Failed to save project idea');
+    } catch (err: unknown) {
+      const message =
+        (err as { data?: { message?: string } })?.data?.message ||
+        'Failed to save project idea';
+      toast.error(message);
     }
   };
 
   const isSubmitting = isCreating || isUpdating;
-  
-  // Extract all categories
-  const allCategories = categoriesData?.data?.data || [];
-  const filteredCategories = selectedTheme 
-    ? allCategories.filter(cat => cat.theme === selectedTheme)
-    : [];
-
-  // Extract filtered subcategories returned directly by the category-scoped query
-  const filteredSubcategories = subcategoriesData?.data?.data || [];
-
-  // Diagnostic logging to debug cascading dropdowns
-  console.log('Cascading Dropdowns State:', {
-    selectedTheme,
-    selectedCategoryId,
-    allCategoriesCount: allCategories.length,
-    filteredCategoriesCount: filteredCategories.length,
-    filteredSubcategoriesCount: filteredSubcategories.length,
-  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900">
-            {editingIdeaId ? 'Edit Project Idea' : 'Create Project Idea'}
+            {editingIdea ? 'Edit Project Idea' : 'Create Project Idea'}
           </h3>
           <button
             onClick={onClose}
@@ -154,9 +230,7 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
               maxLength={80}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
             />
-            <div className="text-xs text-right text-gray-400">
-              {title.length}/80
-            </div>
+            <div className="text-xs text-right text-gray-400">{title.length}/80</div>
           </div>
 
           <div className="space-y-2">
@@ -187,7 +261,9 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
               }}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none bg-white"
             >
-              <option value="" disabled>Select Theme</option>
+              <option value="" disabled>
+                Select Theme
+              </option>
               {THEMES.map((theme) => (
                 <option key={theme.id} value={theme.id}>
                   {theme.name}
@@ -211,13 +287,27 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
                 disabled={!selectedTheme || isLoadingCategories}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none bg-white disabled:bg-gray-50"
               >
-                <option value="" disabled>Select Category</option>
+                <option value="" disabled>
+                  {isLoadingCategories
+                    ? 'Loading...'
+                    : filteredCategories.length === 0
+                      ? 'No categories for this theme'
+                      : 'Select Category'}
+                </option>
                 {filteredCategories.map((cat) => (
                   <option key={cat._id} value={cat._id}>
                     {cat.name}
                   </option>
                 ))}
               </select>
+              {selectedTheme &&
+                !isLoadingCategories &&
+                filteredCategories.length === 0 && (
+                  <p className="text-xs text-amber-600">
+                    No active categories under {selectedTheme}. Add them in
+                    Categories first.
+                  </p>
+                )}
             </div>
 
             <div className="space-y-2">
@@ -225,14 +315,21 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
                 Subcategory <span className="text-red-500">*</span>
               </label>
               <select
+                key={`sub-${selectedCategoryId}`}
                 required
                 value={subCategoryId}
                 onChange={(e) => setSubCategoryId(e.target.value)}
                 disabled={!selectedCategoryId || isLoadingSubcategories}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none bg-white disabled:bg-gray-50 disabled:text-gray-400"
               >
-                <option value="" disabled>Select Subcategory</option>
-                {filteredSubcategories.map((sub) => (
+                <option value="" disabled>
+                  {isLoadingSubcategories
+                    ? 'Loading...'
+                    : subcategoryOptions.length === 0
+                      ? 'No subcategories'
+                      : 'Select Subcategory'}
+                </option>
+                {subcategoryOptions.map((sub) => (
                   <option key={sub._id} value={sub._id}>
                     {sub.name}
                   </option>
@@ -248,11 +345,15 @@ export default function IdeaFormModal({ isOpen, onClose, editingIdeaId }: IdeaFo
             <input
               type="number"
               value={order}
-              onChange={(e) => setOrder(parseInt(e.target.value) || 0)}
+              onChange={(e) => setOrder(parseInt(e.target.value, 10) || 0)}
               placeholder="e.g. 1"
-              min="0"
+              min={0}
               className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none"
             />
+            <p className="text-xs text-gray-400">
+              Changing subcategory updates home “Project Ideas” immediately after
+              save (pull-to-refresh / reopen home on the app).
+            </p>
           </div>
 
           <div className="pt-4 flex items-center justify-end space-x-3">

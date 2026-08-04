@@ -1,21 +1,33 @@
-// components/dashboard/CommissionChart.tsx
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
-import { TrendingItem } from "@/types/dashboard"
+import { NetRevenueTrendingItem } from "@/types/dashboard"
 
 interface CommissionChartProps {
-  data?: TrendingItem[];
+  data?: NetRevenueTrendingItem[];
 }
 
 export default function CommissionChart({ data }: CommissionChartProps) {
   const hasData = data && data.length > 0;
-  const chartData = hasData ? data : [];
+  const chartData = hasData
+    ? data.map((item) => ({
+        month: item.month,
+        providerCommission: item.providerCommission ?? 0,
+        userCommission: item.userCommission ?? 0,
+        value:
+          item.value ??
+          (item.providerCommission ?? 0) + (item.userCommission ?? 0),
+      }))
+    : [];
+
+  const hasBreakdown = hasData && data.some(
+    (item) => item.providerCommission != null || item.userCommission != null
+  );
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base font-medium text-gray-900">
-          Net Revenue (Commissions) {!hasData && "(No data)"}
+          Net Revenue (Commissions)
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -30,17 +42,22 @@ export default function CommissionChart({ data }: CommissionChartProps) {
                   fontWeight: 500,
                 }} />
               <Legend wrapperStyle={{ paddingTop: "20px" }} />
-              <Bar dataKey="value" name="Net Revenue" fill="#8B5CF6" />
+              {hasBreakdown ? (
+                <>
+                  <Bar dataKey="providerCommission" name="Provider Commission" stackId="a" fill="#8B5CF6" />
+                  <Bar dataKey="userCommission" name="Client Commission" stackId="a" fill="#C4B5FD" />
+                </>
+              ) : (
+                <Bar dataKey="value" name="Net Revenue" fill="#8B5CF6" />
+              )}
             </BarChart>
           </ResponsiveContainer>
         ) : (
           <div className="flex items-center justify-center h-[300px] border border-dashed border-gray-200 rounded-lg bg-gray-50/50">
-            <p className="text-gray-400 text-sm font-medium">Coming soon</p>
+            <p className="text-gray-400 text-sm font-medium">No commission data yet</p>
           </div>
         )}
       </CardContent>
     </Card>
   )
 }
-
-

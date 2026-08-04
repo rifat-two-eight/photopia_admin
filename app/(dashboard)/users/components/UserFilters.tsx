@@ -14,6 +14,8 @@ interface UserFiltersProps {
     status: string;
   };
   onFilterChange: (filters: { role: string; status: string }) => void;
+  onExport?: () => void;
+  isExporting?: boolean;
 }
 
 export const UserFilters: React.FC<UserFiltersProps> = ({
@@ -23,6 +25,8 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
   onToggleFilters,
   filters,
   onFilterChange,
+  onExport,
+  isExporting,
 }) => {
   return (
     <Card className="border-gray-200 shadow-sm">
@@ -46,9 +50,14 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
               <Filter className="w-4 h-4" />
               Filters
             </Button>
-            <Button variant="outline" className="h-10 gap-2 bg-white">
+            <Button
+              variant="outline"
+              className="h-10 gap-2 bg-white"
+              onClick={onExport}
+              disabled={isExporting}
+            >
               <Download className="w-4 h-4" />
-              Export
+              {isExporting ? 'Exporting...' : 'Export'}
             </Button>
           </div>
         </div>
@@ -64,7 +73,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
               >
                 <option value="all">All Roles</option>
                 <option value="user">User</option>
-                <option value="provider">Provider</option>
+                <option value="professional">Provider</option>
               </select>
             </div>
             <div>
@@ -76,8 +85,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="suspended">Suspended</option>
+                <option value="inactive">Suspended / Inactive</option>
               </select>
             </div>
           </div>

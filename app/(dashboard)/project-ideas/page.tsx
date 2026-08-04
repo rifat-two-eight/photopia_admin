@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useGetProjectIdeasQuery } from '@/lib/store/api/projectIdeasApi';
+import { ProjectIdea, useGetProjectIdeasQuery } from '@/lib/store/api/projectIdeasApi';
 import ProjectIdeasTable from './components/ProjectIdeasTable';
 import IdeaFormModal from './components/IdeaFormModal';
 import { Plus, Search } from 'lucide-react';
@@ -10,7 +10,7 @@ export default function ProjectIdeasPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingIdeaId, setEditingIdeaId] = useState<string | null>(null);
+  const [editingIdea, setEditingIdea] = useState<ProjectIdea | null>(null);
 
   const { data, isLoading, isError } = useGetProjectIdeasQuery({
     searchTerm,
@@ -20,19 +20,19 @@ export default function ProjectIdeasPage() {
     sortOrder: 'asc'
   });
 
-  const handleEdit = (id: string) => {
-    setEditingIdeaId(id);
+  const handleEdit = (idea: ProjectIdea) => {
+    setEditingIdea(idea);
     setIsModalOpen(true);
   };
 
   const handleAddNew = () => {
-    setEditingIdeaId(null);
+    setEditingIdea(null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setEditingIdeaId(null);
+    setEditingIdea(null);
   };
 
   return (
@@ -94,7 +94,7 @@ export default function ProjectIdeasPage() {
       <IdeaFormModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        editingIdeaId={editingIdeaId}
+        editingIdea={editingIdea}
       />
     </div>
   );

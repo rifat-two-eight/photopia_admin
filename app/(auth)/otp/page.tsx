@@ -56,24 +56,39 @@ export default function OTPVerifyPage() {
 
   const handleSubmit = async () => {
     const otpCode = otp.join("");
+    const email = localStorage.getItem("resetEmail");
 
     if (otpCode.length !== 6) {
       toast.error("Please enter all 6 digits");
       return;
     }
 
+    if (!email) {
+      toast.error("Email not found. Please go back to forgot password page.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const response = await axiosInstance.post("/auth/verify-account", {
+        email,
+        oneTimeCode: otpCode,
+      });
 
-      toast.success("Email verified successfully!");
-
-      setTimeout(() => {
+      if (response.data.success) {
+        const resetToken = response.data.data?.token;
+        if (resetToken) {
+          localStorage.setItem("resetToken", resetToken);
+        }
+        toast.success(response.data.message || "OTP verified successfully!");
         router.push("/reset");
-      }, 1000);
-    } catch {
-      toast.error("Invalid OTP code. Please try again.");
+      } else {
+        toast.error(response.data.message || "Invalid OTP code. Please try again.");
+      }
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || "Invalid OTP code. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -89,7 +104,10 @@ export default function OTPVerifyPage() {
     setIsResending(true);
 
     try {
-      const response = await axiosInstance.post("/auth/resend-otp", { email });
+      const response = await axiosInstance.post("/auth/resend-otp", {
+        email,
+        authType: "resetPassword",
+      });
 
       if (response.data.success) {
         toast.success(response.data.message || "OTP code has been resent to your email!");

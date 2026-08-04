@@ -20,6 +20,7 @@ export interface Category {
 export interface DashboardCategoryStats {
   totalCategories: number;
   totalSubCategories: number;
+  totalThemes?: number;
   categoriesByTheme: {
     theme: string;
     count: number;
