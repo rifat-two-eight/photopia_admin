@@ -75,13 +75,15 @@ export default function StatsGrid({ metrics }: StatsGridProps) {
       trendUp: (metrics?.activeCustomers?.change || 0) >= 0,
     },
     {
-      title: "Pending Approval",
-      value: "47",
+      title: "Support Tickets",
+      value: metrics?.supportTickets
+        ? (metrics.supportTickets.count || 0).toLocaleString()
+        : "0",
       icon: Clock,
       iconBgColor: "bg-yellow-100",
       iconColor: "text-yellow-600",
-      trend: "+8.7%",
-      trendUp: true,
+      trend: `${metrics?.supportTickets?.change || 0}%`,
+      trendUp: (metrics?.supportTickets?.change || 0) >= 0,
     },
     {
       title: "Avg Response Time",

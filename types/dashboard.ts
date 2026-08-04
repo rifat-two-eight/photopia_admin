@@ -19,7 +19,21 @@ export interface MainMetrics {
 
 export interface TrendingItem {
     month: string;
-    value: number;
+    value?: number;
+    amount?: number;
+}
+
+export interface NetRevenueTrendingItem {
+    month: string;
+    value?: number;
+    providerCommission?: number;
+    userCommission?: number;
+}
+
+export interface MostViewedItem {
+    name: string;
+    views: number;
+    bounceRate?: number;
 }
 
 export interface GeographicPerformanceItem {
@@ -60,12 +74,13 @@ export interface RetentionEngagement {
 export interface DetailedDashboardStats {
     mainMetrics: MainMetrics;
     gmvTrending: TrendingItem[];
-    netRevenueTrending: TrendingItem[];
+    netRevenueTrending: NetRevenueTrendingItem[];
     geographicPerformance: GeographicPerformanceItem[];
     marketplaceHealth: MarketplaceHealth;
     countryRanking: CountryRankingItem[];
     acquisitionByChannel: AcquisitionChannelItem[];
     retentionEngagement: RetentionEngagement;
+    mostViewedPages?: MostViewedItem[];
 }
 
 export interface ApiResponse<T> {

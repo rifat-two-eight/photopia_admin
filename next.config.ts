@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: 'mohosin5001.binarybards.online',
+      },
+      {
+        protocol: 'https',
         hostname: 'mohosin5003.binarybards.online',
       },
       {

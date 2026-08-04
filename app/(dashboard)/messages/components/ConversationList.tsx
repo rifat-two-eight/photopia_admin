@@ -20,13 +20,17 @@ interface ConversationListProps {
   activeId: string;
   onSelect: (id: string) => void;
   isLoading: boolean;
+  searchQuery: string;
+  onSearchChange: (value: string) => void;
 }
 
 export const ConversationList: React.FC<ConversationListProps> = ({
   chats,
   activeId,
   onSelect,
-  isLoading
+  isLoading,
+  searchQuery,
+  onSearchChange,
 }) => {
   // Sort chats by updatedAt in descending order (newest update at top)
   const sortedChats = [...chats].sort((a, b) =>
@@ -42,6 +46,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
           <Input
             placeholder="Search conversations..."
             className="pl-10 bg-gray-50 border-gray-200"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
       </div>
@@ -81,9 +87,8 @@ export const ConversationList: React.FC<ConversationListProps> = ({
                   </div>
                   <div className="flex justify-between items-start">
                     <p className="text-sm text-gray-600 truncate pr-2 flex-1">
-                      {/* Show unread count if it exists, otherwise show last message, otherwise fallback */}
-                      {chat.unreadCount > 0 
-                        ? `${chat.unreadCount} unread messages` 
+                      {chat.unreadCount > 0
+                        ? `${chat.unreadCount} unread messages`
                         : chat.lastMessage?.text || (chat.lastMessage?.image ? 'Sent an image' : (chat.lastMessage?.file ? 'Sent a file' : 'No new messages'))}
                     </p>
                     {chat.unreadCount > 0 && (

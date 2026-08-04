@@ -25,6 +25,8 @@ const PaymentsPage = () => {
   const [loadingTransactions, setLoadingTransactions] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [isExporting, setIsExporting] = useState(false);
 
   // Debounce search query
   useEffect(() => {
@@ -78,6 +80,32 @@ const PaymentsPage = () => {
     };
     fetchTransactions();
   }, [debouncedSearch]);
+
+  const handleExportPayments = async () => {
+    try {
+      setIsExporting(true);
+      const response = await axiosInstance.get('/dashboard/export-payments', {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'payments.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to export payments:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const filteredTransactions = useMemo(() => {
+    if (statusFilter === 'all') return recentTransactions;
+    return recentTransactions.filter((txn) => txn.status === statusFilter);
+  }, [recentTransactions, statusFilter]);
 
   const stats: PaymentStat[] = useMemo(() => {
     // ... stats mapping ...
@@ -189,15 +217,19 @@ const PaymentsPage = () => {
         <PaymentsFilters
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
+          onExport={handleExportPayments}
+          isExporting={isExporting}
         />
         
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
-          <span className="text-sm text-gray-500">{recentTransactions.length} items total</span>
+          <span className="text-sm text-gray-500">{filteredTransactions.length} items total</span>
         </div>
 
         <TransactionsTable 
-          transactions={recentTransactions} 
+          transactions={filteredTransactions} 
           onViewDetails={setSelectedTransaction}
           loading={loadingTransactions}
         />

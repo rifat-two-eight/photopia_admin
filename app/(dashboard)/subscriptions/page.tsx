@@ -131,9 +131,8 @@ const SubscriptionsPage = () => {
     }
   ];
 
-  // Map active plan to existing mock structure for the Edit form if needed
   const plan: SubscriptionPlan = {
-    id: 'premium-plan',
+    id: statsData?.activePlan.id || '',
     name: statsData?.activePlan.name || 'Photopya Premium',
     price: statsData?.activePlan.price || 16,
     features: statsData?.activePlan.features.map((f, i) => ({ id: i.toString(), text: f })) || [],
@@ -143,15 +142,49 @@ const SubscriptionsPage = () => {
     }
   };
 
+  const handleSavePlan = async (updated: SubscriptionPlan) => {
+    if (!updated.id) {
+      toast.error('Plan ID is missing. Cannot update plan.');
+      return;
+    }
+
+    try {
+      const response = await axiosInstance.patch(`/subscription/admin/plans/${updated.id}`, {
+        name: updated.name,
+        price: updated.price,
+        features: updated.features.map((f) => f.text),
+      });
+
+      if (response.data.success) {
+        toast.success(response.data.message || 'Plan updated successfully');
+        setIsEditingPlan(false);
+        fetchStats();
+      } else {
+        toast.error(response.data.message || 'Failed to update plan');
+      }
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || 'Failed to update plan');
+    }
+  };
+
+  const filteredSubscribers = searchQuery.trim()
+    ? subscribers.filter((subscriber) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          subscriber.name?.toLowerCase().includes(q) ||
+          subscriber.email?.toLowerCase().includes(q) ||
+          subscriber.plan?.toLowerCase().includes(q)
+        );
+      })
+    : subscribers;
+
   if (isEditingPlan) {
     return (
       <EditPlanForm
         plan={plan}
         onBack={() => setIsEditingPlan(false)}
-        onSave={(updated) => {
-          console.log('Saved:', updated);
-          setIsEditingPlan(false);
-        }}
+        onSave={handleSavePlan}
       />
     );
   }
@@ -199,7 +232,7 @@ const SubscriptionsPage = () => {
         />
 
         <SubscribersTable 
-          subscribers={subscribers} 
+          subscribers={filteredSubscribers} 
           onView={setSelectedSubscriber}
           onCancel={handleCancelSubscription}
           onReactivate={handleReactivateSubscription}
