@@ -7,65 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { CountryRankingItem } from "@/types/dashboard";
 
-const demoRankingData = [
-  {
-    country: "Germany",
-    revenue: "€397,855",
-    growth: "+8.3%",
-    rankCurrent: 1,
-    rankPrev1: 1,
-    rankPrev2: 1,
-  },
-  {
-    country: "France",
-    revenue: "€541,112",
-    growth: "+13.9%",
-    rankCurrent: 2,
-    rankPrev1: 1,
-    rankPrev2: 1,
-  },
-  {
-    country: "United Kingdom",
-    revenue: "€117,369",
-    growth: "+21.1%",
-    rankCurrent: 3,
-    rankPrev1: 1,
-    rankPrev2: 7,
-  },
-  {
-    country: "Spain",
-    revenue: "€102,100",
-    growth: "+15.4%",
-    rankCurrent: 4,
-    rankPrev1: 2,
-    rankPrev2: 3,
-  },
-  {
-    country: "Italy",
-    revenue: "€95,540",
-    growth: "+10.2%",
-    rankCurrent: 5,
-    rankPrev1: 4,
-    rankPrev2: 6,
-  },
-  {
-    country: "Netherlands",
-    revenue: "€88,200",
-    growth: "+7.5%",
-    rankCurrent: 6,
-    rankPrev1: 5,
-    rankPrev2: 5,
-  },
-  {
-    country: "Belgium",
-    revenue: "€76,400",
-    growth: "+5.1%",
-    rankCurrent: 7,
-    rankPrev1: 6,
-    rankPrev2: 8,
-  },
-];
-
 interface CountryRankingProps {
   data?: CountryRankingItem[];
 }
@@ -82,8 +23,7 @@ export default function CountryRanking({ data }: CountryRankingProps) {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const isDemo = !data || data.length === 0;
-  const rankingData = useMemo(() => (!isDemo ? data : demoRankingData), [data, isDemo]);
+  const rankingData = useMemo(() => data ?? [], [data]);
   
   const uniqueCountries = useMemo(() => Array.from(new Set(rankingData.map(d => d.country))), [rankingData]);
 
@@ -104,123 +44,132 @@ export default function CountryRanking({ data }: CountryRankingProps) {
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
         <div className="space-y-1">
           <CardTitle className="text-lg font-semibold text-gray-900">
-            Country Ranking {isDemo && "(demo)"}
+            Country Ranking
           </CardTitle>
           <p className="text-sm text-gray-500">
             Top countries by revenue and growth
           </p>
         </div>
-        <div className="relative">
-            <button 
-                onClick={toggleDropdown}
-                className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
-            >
-            {selectedCountry || "All Countries"}
-            <ChevronDown className={cn("w-4 h-4 text-gray-400 transition-transform", isDropdownOpen && "rotate-180")} />
-            </button>
-            
-            {isDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
-                    <div 
-                        className={cn(
-                            "px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center justify-between",
-                            !selectedCountry && "bg-blue-50 text-blue-600"
-                        )}
-                        onClick={() => selectCountry(null)}
-                    >
-                        All Countries
-                        {!selectedCountry && <Check className="w-4 h-4" />}
-                    </div>
-                    {uniqueCountries.map(country => (
-                        <div 
-                            key={country}
-                            className={cn(
-                                "px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center justify-between",
-                                selectedCountry === country && "bg-blue-50 text-blue-600"
-                            )}
-                            onClick={() => selectCountry(country)}
-                        >
-                            {country}
-                            {selectedCountry === country && <Check className="w-4 h-4" />}
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
+        {rankingData.length > 0 && (
+          <div className="relative">
+              <button 
+                  onClick={toggleDropdown}
+                  className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
+              >
+              {selectedCountry || "All Countries"}
+              <ChevronDown className={cn("w-4 h-4 text-gray-400 transition-transform", isDropdownOpen && "rotate-180")} />
+              </button>
+              
+              {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                      <div 
+                          className={cn(
+                              "px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center justify-between",
+                              !selectedCountry && "bg-blue-50 text-blue-600"
+                          )}
+                          onClick={() => selectCountry(null)}
+                      >
+                          All Countries
+                          {!selectedCountry && <Check className="w-4 h-4" />}
+                      </div>
+                      {uniqueCountries.map(country => (
+                          <div 
+                              key={country}
+                              className={cn(
+                                  "px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center justify-between",
+                                  selectedCountry === country && "bg-blue-50 text-blue-600"
+                              )}
+                              onClick={() => selectCountry(country)}
+                          >
+                              {country}
+                              {selectedCountry === country && <Check className="w-4 h-4" />}
+                          </div>
+                      ))}
+                  </div>
+              )}
+          </div>
+        )}
       </CardHeader>
       
       <CardContent>
-        <div className="relative mb-6">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-            type="text"
-            placeholder="Search for a country..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-gray-400"
-            />
-        </div>
+        {rankingData.length === 0 ? (
+          <div className="flex items-center justify-center h-[160px] border border-dashed border-gray-200 rounded-lg bg-gray-50/50">
+            <p className="text-gray-400 text-sm font-medium">No country ranking data yet</p>
+          </div>
+        ) : (
+          <>
+            <div className="relative mb-6">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                type="text"
+                placeholder="Search for a country..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-gray-400"
+                />
+            </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                  Country
-                </th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                  Revenue
-                </th>
-                <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
-                  Growth
-                </th>
-                <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
-                  Rank Current
-                </th>
-                <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
-                  Rank Prev 1
-                </th>
-                <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
-                  Rank Prev 2
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredData.length > 0 ? (
-                filteredData.map((item, index) => (
-                    <tr key={index} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50 transition-colors">
-                    <td className="py-4 px-4 text-sm font-medium text-gray-900">
-                        {item.country}
-                    </td>
-                    <td className="py-4 px-4 text-sm text-gray-600">
-                        {typeof item.revenue === "number" ? `€${item.revenue.toLocaleString()}` : item.revenue}
-                    </td>
-                    <td className="py-4 px-4 text-sm font-medium text-emerald-500">
-                        {typeof item.growth === "number" ? `${item.growth >= 0 ? "+" : ""}${item.growth}%` : item.growth}
-                    </td>
-                    <td className="py-4 px-4 text-sm text-center text-gray-600">
-                        {formatRank(item.rankCurrent)}
-                    </td>
-                    <td className="py-4 px-4 text-sm text-center text-gray-600">
-                        {formatRank(item.rankPrev1)}
-                    </td>
-                    <td className="py-4 px-4 text-sm text-center text-gray-500">
-                        {formatRank(item.rankPrev2)}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-100">
+                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
+                      Country
+                    </th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
+                      Revenue
+                    </th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-500">
+                      Growth
+                    </th>
+                    <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
+                      Rank Current
+                    </th>
+                    <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
+                      Rank Prev 1
+                    </th>
+                    <th className="text-center py-3 px-4 text-sm font-medium text-gray-500">
+                      Rank Prev 2
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.length > 0 ? (
+                    filteredData.map((item, index) => (
+                        <tr key={index} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/50 transition-colors">
+                        <td className="py-4 px-4 text-sm font-medium text-gray-900">
+                            {item.country}
+                        </td>
+                        <td className="py-4 px-4 text-sm text-gray-600">
+                            {typeof item.revenue === "number" ? `€${item.revenue.toLocaleString()}` : item.revenue}
+                        </td>
+                        <td className="py-4 px-4 text-sm font-medium text-emerald-500">
+                            {typeof item.growth === "number" ? `${item.growth >= 0 ? "+" : ""}${item.growth}%` : item.growth}
+                        </td>
+                        <td className="py-4 px-4 text-sm text-center text-gray-600">
+                            {formatRank(item.rankCurrent)}
+                        </td>
+                        <td className="py-4 px-4 text-sm text-center text-gray-600">
+                            {formatRank(item.rankPrev1)}
+                        </td>
+                        <td className="py-4 px-4 text-sm text-center text-gray-500">
+                            {formatRank(item.rankPrev2)}
+                        </td>
+                        </tr>
+                    ))
+                  ) : (
+                    <tr>
+                        <td colSpan={6} className="py-8 text-center text-gray-500 text-sm">
+                            No results found for your search.
+                        </td>
                     </tr>
-                ))
-              ) : (
-                <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-500 text-sm">
-                        No results found for your search.
-                    </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
 }
-

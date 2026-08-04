@@ -11,8 +11,8 @@ interface PaymentChartsProps {
 }
 
 export const PaymentCharts: React.FC<PaymentChartsProps> = ({ trendData = [], categoryData = [] }) => {
-  const isTrendDemo = trendData.length === 0;
-  const isCategoryDemo = categoryData.length === 0;
+  const hasTrendData = trendData.length > 0;
+  const hasCategoryData = categoryData.length > 0;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -20,11 +20,16 @@ export const PaymentCharts: React.FC<PaymentChartsProps> = ({ trendData = [], ca
       <Card className="border border-gray-100 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-semibold text-gray-900">
-            Revenue & Commissions Trend {isTrendDemo && "(demo)"}
+            Revenue & Commissions Trend
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[250px] w-full">
+            {!hasTrendData ? (
+              <div className="flex items-center justify-center h-full border border-dashed border-gray-200 rounded-lg bg-gray-50/50">
+                <p className="text-gray-400 text-sm font-medium">No trend data yet</p>
+              </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -53,6 +58,7 @@ export const PaymentCharts: React.FC<PaymentChartsProps> = ({ trendData = [], ca
                 />
               </LineChart>
             </ResponsiveContainer>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -61,11 +67,16 @@ export const PaymentCharts: React.FC<PaymentChartsProps> = ({ trendData = [], ca
       <Card className="border border-gray-100 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-semibold text-gray-900">
-            Commissions by Category {isCategoryDemo && "(demo)"}
+            Commissions by Category
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[250px] w-full">
+            {!hasCategoryData ? (
+              <div className="flex items-center justify-center h-full border border-dashed border-gray-200 rounded-lg bg-gray-50/50">
+                <p className="text-gray-400 text-sm font-medium">No category data yet</p>
+              </div>
+            ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={categoryData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
@@ -86,6 +97,7 @@ export const PaymentCharts: React.FC<PaymentChartsProps> = ({ trendData = [], ca
                 />
               </BarChart>
             </ResponsiveContainer>
+            )}
           </div>
         </CardContent>
       </Card>

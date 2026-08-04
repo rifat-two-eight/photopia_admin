@@ -25,6 +25,7 @@ const UserManagement = () => {
     role: 'all',
     status: 'all'
   });
+  const [isExporting, setIsExporting] = useState(false);
   const [userStats, setUserStats] = useState<Stat[]>([
     { label: 'Total Users', value: '...' },
     { label: 'Providers', value: '...' },
@@ -94,6 +95,29 @@ const UserManagement = () => {
     }
   };
 
+
+  const handleExportUsers = async () => {
+    try {
+      setIsExporting(true);
+      const response = await axiosInstance.get('/dashboard/export-users', {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'users.xlsx');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success('Users exported successfully');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err.response?.data?.message || 'Failed to export users');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const fetchUserDetails = async (user: User | { id: string }) => {
     try {
@@ -228,7 +252,7 @@ const UserManagement = () => {
 
     if (result.isConfirmed) {
       try {
-        const response = await axiosInstance.delete(`/user/${userId}`);
+        const response = await axiosInstance.delete(`/users/${userId}`);
         if (response.data.success) {
           Swal.fire({
             title: 'Deleted!',
@@ -301,6 +325,8 @@ const UserManagement = () => {
             setFilters(newFilters);
             setCurrentPage(1);
           }}
+          onExport={handleExportUsers}
+          isExporting={isExporting}
         />
 
         {isLoadingUsers ? (
