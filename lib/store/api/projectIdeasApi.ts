@@ -4,7 +4,7 @@ export interface Subcategory {
   _id: string;
   name: string;
   theme: string;
-  parent: string;
+  parent: string | { _id: string; name: string; theme?: string };
   type: string;
 }
 
@@ -30,7 +30,7 @@ export interface ProjectIdea {
     _id: string;
     name: string;
     theme: string;
-    parent?: string | { _id: string; name: string };
+    parent?: string | { _id: string; name: string; theme?: string };
   };
   order: number;
   createdAt: string;
@@ -81,12 +81,16 @@ export const projectIdeasApi = baseApi.injectEndpoints({
     }),
     
     getIdeaCategories: builder.query<SubcategoryResponse, void>({
-      query: () => '/category?type=category&isActive=true&limit=100',
+      // High limit so Photography / all themes appear in Project Idea form
+      query: () => '/category?type=category&isActive=true&limit=200&sortBy=name&sortOrder=asc',
       providesTags: ['Categories'],
     }),
 
     getIdeaSubcategories: builder.query<SubcategoryResponse, string | void>({
-      query: (parentId) => `/category?type=subcategory&isActive=true&limit=100${parentId ? `&parent=${parentId}` : ''}`,
+      query: (parentId) =>
+        `/category?type=subcategory&isActive=true&limit=200&sortBy=name&sortOrder=asc${
+          parentId ? `&parent=${parentId}` : ''
+        }`,
       providesTags: ['Categories'],
     }),
 

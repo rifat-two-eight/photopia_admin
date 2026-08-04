@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 
 interface ProjectIdeasTableProps {
   ideas: ProjectIdea[];
-  onEdit: (id: string) => void;
+  onEdit: (idea: ProjectIdea) => void;
 }
 
 export default function ProjectIdeasTable({ ideas, onEdit }: ProjectIdeasTableProps) {
@@ -89,7 +89,7 @@ export default function ProjectIdeasTable({ ideas, onEdit }: ProjectIdeasTablePr
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => onEdit(idea._id)}
+                        onClick={() => onEdit(idea)}
                         className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                         title="Edit"
                       >
